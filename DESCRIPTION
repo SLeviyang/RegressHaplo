@@ -1,0 +1,21 @@
+Package: RegressHaplo
+Type: Package
+Title: Construction and visualization of haplotypes from BAM files
+Version: 0.1
+Date: 2016-08-04
+Author: Sivan Leviyang
+Maintainer: Who to complain to <sr286@georgetown.edu>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+LazyData: TRUE
+Depends: devtools,
+    VSeqTools,
+    igraph,
+    plyr,
+    dplyr,
+    ggplot2,
+    Biostrings,
+    Rsolnp,
+    gridExtra,
+    grid,
+    gtable
