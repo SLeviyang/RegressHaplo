@@ -3,10 +3,10 @@ clear
 glaveps = 1e-6
 fprintf(1,'Reading data from file...   \n'); 
 
-FN1 = strcat('../Igor_P1.csv');
+FN1 = strcat('../Igor_P5.csv');
 Pmatf=csvread(FN1);
 
-FN2 = strcat('../Igor_y1.csv');
+FN2 = strcat('../Igor_y5.csv');
 
 % y VECTOR LOADED
 yvec=csvread(FN2);
