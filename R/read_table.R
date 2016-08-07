@@ -208,11 +208,17 @@ paired_end_read_table <- function(ga_pair,
 ########################################################
 #  methods that analyze read_table objects
 
+#' Returns positions of read table as character vector
+#'
+#' @return A character vector
+#' @export
 pos_names.read_table <- function(df)
 {
   return (names(select(df, -count)))
 }
 
+#' Return the consensus sequence at each position of the read table
+#' @export
 consensus.read_table <- function(df)
 {
   df_nucs <- select(df, -count)
@@ -228,7 +234,10 @@ consensus.read_table <- function(df)
   return (nucs)
 }
 
-# Return coverage at each position in read table
+#' Return coverage at each position in read table
+#'
+#' @return A numeric vector
+#' @export
 coverage.read_table <- function(df)
 {
   counts <- df$count
@@ -252,13 +261,14 @@ coverage.read_table <- function(df)
 #' an entire read.  if F then return all alleles that comprise
 #' any subsequence of a read.
 #'
-#' @details a template is a logical vector with
-#' T corresponding to nucleotide positions that are
+#' @details a template is a logical vector of length
+#' equal to the number of positions in the read table
+#' and with T corresponding to nucleotide positions that are
 #' part of the template.
 #'
 #' @returns A named numeric vector with entries giving allele counts
 #' and names giving alleles
-#'
+#' @export
 template_alleles.read_table <- function(template, df, match=F)
 {
   df_nucs <- select(df, -count)
@@ -304,11 +314,17 @@ template_alleles.read_table <- function(template, df, match=F)
   return (unique_allele_counts)
 }
 
-#' Retrieve all templates matching at least one read
+#' Retrieve all templates matching at least one read in the
+#' read table
+#'
+#' Each read determines a template, with T at the positions
+#' covered by the read, but multiple reads can have the same
+#' template.  This function returns all unique templates.
 #'
 #' @param df read table
 #'
-#' @return a matrix with each row giving a template
+#' @return a logical matrix with each row giving a template
+#' @export
 templates.read_table <- function(df)
 {
   df_nucs <- select(df, -count)
@@ -346,6 +362,7 @@ reads_covering_positions.read_table <- function(df)
 #'
 #' @return A R by K logical matrix where R is number of reads and K is
 #' number of haplotypes.  A TRUE entry means the read covers the haplotype.
+#' @export
 reads_covering_haplotypes.read_table <- function(df, h)
 {
   df_nucs <- select(df, -count)
@@ -472,6 +489,7 @@ seq.read_table <- function(df)
 #'
 #' @return a square matrix with dimension equal to the number
 #' of read groups in the read graph
+#' @export
 adjacency_matrix.read_table <- function(df, sparse=T)
 {
   dfs <- split_paired_ends.read_table(df)
