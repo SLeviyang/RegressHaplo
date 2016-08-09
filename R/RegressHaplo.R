@@ -7,8 +7,8 @@
 #' solution that allows for a modest dimension in the global problem.
 #'
 #'
-RegressHaploFiltered <- function(df, global_rho, max_global_dim=500,
-                                 max_local_dim=500,
+RegressHaploFiltered <- function(df, global_rho, max_global_dim=10000,
+                                 max_local_dim=1200,
                                  min_cover=0,
                                  run_optimization=T)
 {
@@ -18,13 +18,12 @@ RegressHaploFiltered <- function(df, global_rho, max_global_dim=500,
 
   #sdf <- split_unlinked_loci.read_table(df, sort_loci=F, min_cover=min_cover)
 
-
   # for each sdf, do a local pass and keep going until dimension is small
   # enough
   local_rho <- .001
   repeat {
     rh_local <- lapply(sdf, RegressHaploLocal,
-                       max_dim=500,
+                       max_dim=max_local_dim,
                        min_cover=min_cover,
                        local_rho=local_rho)
     # extract all the haplotypes
@@ -69,7 +68,7 @@ RegressHaploFiltered <- function(df, global_rho, max_global_dim=500,
 #' \item{fit}{Quality of fit of h,pi to the read table df}
 #' \item{h_consistent}{A haplotype matrix of all consistent haplotypes for the read table}
 #' }
-RegressHaploLocal <- function(df, local_rho, max_dim=500,
+RegressHaploLocal <- function(df, local_rho, max_dim=1200,
                               min_cover=1000,
                               run_optimization=T)
 {
@@ -163,7 +162,7 @@ split_read_table.RegressHaplo <- function(df, min_cover, max_dim)
 compute_solution.RegressHaplo <- function(df, h_full, rho)
 {
   par <- penalized_regression_parameters.RegressHaplo(df, h_full)
-  pi_full <- penalized_regression.RegressHaplo(par$y, par$P, par$M,
+  pi_full <- penalized_regression.RegressHaplo(par$y, par$P, pi=NULL,
                                                rho=rho,
                                                debug=F)
 
@@ -177,7 +176,7 @@ compute_solution.RegressHaplo <- function(df, h_full, rho)
   print("adjusting haplotype frequencies")
   par <- penalized_regression_parameters.RegressHaplo(df, h)
   if (length(pi) > 1)
-    pi <- penalized_regression.RegressHaplo(par$y, par$P, par$M, rho=0)
+    pi <- penalized_regression.RegressHaplo(par$y, par$P, pi=NULL, rho=0)
 
   fit_vec <- par$y - par$P %*% pi
   fit <- sqrt(sum(fit_vec*fit_vec))
@@ -256,7 +255,8 @@ haplotype_permute.RegressHaplo <- function(h_list)
 #' @param df read table
 #' @param h haplotype matrix
 #'
-#' @return the matrices P and M and the vector y as a list.
+#' @return the matrix P and the vector y as a list.  M is implicit
+#' and so not computed.
 #' @export
 penalized_regression_parameters.RegressHaplo <- function(df, h)
 {
@@ -273,41 +273,47 @@ penalized_regression_parameters.RegressHaplo <- function(df, h)
   y <- do.call(c, y_list)
 
   # penalty matrix, it's concave!
-  M <- matrix(1, nrow=K, ncol=K)*(1-diag(K))
+  #M <- matrix(1, nrow=K, ncol=K)*(1-diag(K))
 
-  return (list(y=y, P=P, M=M))
+  return (list(y=y, P=P))
 }
 
 #' Solves min_pi |y - P*pi|^2 + rho*pi^T*M*pi
 #' @export
-penalized_regression.RegressHaplo <- function(y, P, M, rho,
+penalized_regression.RegressHaplo <- function(y, P, pi=NULL, rho,
                                               debug=F)
 {
-  K <- nrow(M)
 
-  pi0 <- runif(K)
-  pi0 <- pi0/sum(pi0)
+  d <- ncol(P)
 
-  quad_f_pi <- function(pi) {
-    z <- y - P %*% pi
-    # residual SS plus penalty for stability
-    return (sum(z*z) + rho*t(pi) %*% M %*% pi)
+  if (is.null(pi)) {
+    pi <- runif(d)
+    pi <- pi/sum(pi)
   }
 
-  quad_gf_pi <- function(pi) {
-    grad_f <- 2*(t(P) %*% P + rho*M) %*% pi - 2*t(P) %*% y
-
-    return (grad_f)
-  }
-
-  eq_constraint_pi <- function(pi) return(sum(pi)-1)
-
-  solve <- solnp(pi0, quad_f_pi, eq_constraint_pi, 0,
-                 LB=rep(0, K), UB=rep(1, K))
-
-  pi <- solve$pars
-  if (debug) browser()
-
-  return (pi)
+  pi_out <- optimize.engine(y=y, P=P, rho=rho, pi=pi, mu=0, kk=2)
+  return (pi_out)
+#
+#   quad_f_pi <- function(pi) {
+#     z <- y - P %*% pi
+#     # residual SS plus penalty for stability
+#     return (sum(z*z) + rho*t(pi) %*% M %*% pi)
+#   }
+#
+#   quad_gf_pi <- function(pi) {
+#     grad_f <- 2*(t(P) %*% P + rho*M) %*% pi - 2*t(P) %*% y
+#
+#     return (grad_f)
+#   }
+#
+#   eq_constraint_pi <- function(pi) return(sum(pi)-1)
+#
+#   solve <- solnp(pi0, quad_f_pi, eq_constraint_pi, 0,
+#                  LB=rep(0, K), UB=rep(1, K))
+#
+#   pi <- solve$pars
+#   if (debug) browser()
+#
+#   return (pi)
 }
 
