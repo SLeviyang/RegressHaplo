@@ -11,7 +11,7 @@
 #' alleles, P.   sampled_freq and predicted_freq are numeric vectors
 #' with an entry for each allele.  Alleles is a character vector.
 #' sampled_freq always sums to 1, since alleles are those seen in the
-#' data,w hile predicted_freq may sum to less than 1 when a haplotype
+#' data, while predicted_freq may sum to less than 1 when a haplotype
 #' does not match any allele.
 #'
 #' readFit objects are built based on nucleotide positions or reads.
@@ -74,7 +74,7 @@ template_fit.readFit <- function(template_m, df, h, pi=NULL)
   K <- nrow(h)
   ntemplates <- nrow(template_m)
 
-  # for each position, generate all sampled_freqs, alleles,
+  # for each template, generate all sampled_freqs, alleles,
   # P matrix, predicted_freqs
   info <- lapply(1:ntemplates, function(i) {
     ctemplate <- template_m[i,]
