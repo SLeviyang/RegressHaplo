@@ -1,12 +1,4 @@
 
-#' Note: exanding window approach did not work well.  Locally, we lack information so
-#' that sparse solutions may be missed.   The best example is two biallelic unlinked
-#' loci.  There is little information as to which solution is best.  A sparse solution
-#' may select just two alleles.  But a three allele solution is also possible and fits
-#' any marginals.  So better is to treat each locus separately and attempt a non-sparse
-#' solution that allows for a modest dimension in the global problem.
-#'
-
 #' Generate consistent haplotypes for a read table and, if desired, apply
 #' RegressHaplo optimization.
 #'
@@ -63,7 +55,7 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
     rh_local <- lapply(sdf, nofilter_and_optimize.RegressHaplo,
                        max_dim=max_local_dim,
                        min_cover=min_cover,
-                       local_rho=local_rho)
+                       rho=local_rho)
 
     # extract all the haplotypes
     h_local <- lapply(rh_local, function(rh) {
@@ -79,7 +71,6 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
       local_rho <- sqrt(10)*local_rho
   }
   colnames(h_consistent) <- pos_names.read_table(df)
-  return (h_consistent)
 
 #   # if not running optimization, then just return the consistent haplotypes
   if (!run_optimization | is.null(global_rho))
@@ -129,7 +120,6 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
 #' are NA if the optimization is not run, otherwhise pi is a vector
 #' of frequencies with length equal to the number of haplotypes (nrow(h))
 #' and fit is a scalar describing the fit of the solution.
-#' @export
 #' @export
 nofilter_and_optimize.RegressHaplo <- function(df, rho,
                               max_dim=1200,

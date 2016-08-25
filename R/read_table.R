@@ -538,7 +538,6 @@ adjacency_matrix.read_table <- function(df, sparse=T)
 #           next
 #       }
 
-      # do not connect non-overlapping reads
       if (length(shared_pos)==0)
         next
 
@@ -689,12 +688,12 @@ split_paired_ends.read_table <- function(df)
   return (list(df=df_out, pairs=m_split))
 }
 
-consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500)
+#' A helper function that create haplotype permutations from a list
+#' of haplotype matrices
+#'
+#' @param con_haps A list of haplotype matrices
+merge_haplotypes.read_table <- function(con_haps)
 {
-  sdf <- split_unlinked_loci.read_table(df_in, min_cover=min_cover, sort_loci = F)
-  con_haps <- lapply(sdf, consistent_haplotypes.read_table, rm.na=T)
-
-  #if the read table cannot be split, then return the consistent haplotypes
   if (length(con_haps)==1)
     return (con_haps[[1]])
 
@@ -713,12 +712,47 @@ consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500)
   return (merged_haps)
 }
 
+#' Split read table into loci with no spanning reads, create consistent
+#' haplotypes for each locus, and then combine to create full haplotypes
+consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500)
+{
+  sdf <- split_unlinked_loci.read_table(df_in, min_cover=min_cover, sort_loci = F)
+  con_haps <- lapply(sdf, consistent_haplotypes.read_table, rm.na=T)
+
+  merged_haps <- merge_haplotypes.read_table(con_haps)
+
+  return (merged_haps)
+}
+
+#' Split read table into loci with no spanning single end reads, create
+#' consistent haplotypes for each locus, and then combine to create full
+#' haploptypes
 consistent_haplotypes.read_table <- function(df_in, rm.na=F)
 {
   paired_split_out <- split_paired_ends.read_table(df_in)
   df <- paired_split_out$df
   pairs <- paired_split_out$pairs
 
+  # if there are no paired reads, then do not split or filter
+  if (nrow(pairs)==0) {
+    haps <- consistent_haplotypes_single_end.read_table(df_in)
+    return (haps)
+  }
+
+  # split to create consistent haplotypes ignoring pairing of reads
+  sdf <- split_unlinked_loci.read_table(df, min_cover=0, sort_loci = F)
+  con_haps <- lapply(sdf, consistent_haplotypes_single_end.read_table, rm.na=rm.na)
+  merged_haps <- merge_haplotypes.read_table(con_haps)
+
+  # filter with paired reads
+  consistent_haps <- filter_haplotypes_with_paired_ends.read_table(df_in,
+                                                                    merged_haps)
+
+  return (consistent_haps)
+}
+
+consistent_haplotypes_single_end.read_table <- function(df, rm.na=F)
+{
   m <- adjacency_matrix.read_table(df, sparse=T)
   nv <- nrow(m)
 
@@ -738,22 +772,6 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F)
   # get paths between root and leaves
   paths <- all_simple_paths(g, from=1, to=leaves,
                             mode="out")
-
-  # remove paths that do not include both pairs of a given read
-  if(nrow(pairs)>0) {
-    # account for read group shift
-    pairs <- pairs + 1
-    valid_path <- sapply(paths, function(cpath) {
-      first_present <- !is.na(match(pairs[,1], cpath))
-      second_present <- !is.na(match(pairs[,2], cpath))
-
-      if (any(first_present & !second_present) |
-          any(!first_present & second_present))
-        return (F)
-      return (T)
-    })
-    paths <- paths[valid_path]
-  }
 
 
   # convert paths to haplotypes, remember read groups
@@ -810,6 +828,38 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F)
   return (haplotypes)
 }
 
+
+filter_haplotypes_with_paired_ends.read_table <- function(df, haps)
+{
+  if ((ncol(df)-1) != ncol(haps))
+    stop("inconsistent positions between read table and haplotype matrix")
+
+  seq <- seq.read_table(df)
+  pos <- all_pos.read_table(df)
+
+  df_pos <- as.numeric(pos_names.read_table(df))
+  pos_ind <- lapply(pos, function(cpos) match(cpos, df_pos))
+
+  nreads <- nrow(df)
+  nhaps <- nrow(haps)
+  npos <- ncol(haps)
+  covered <- matrix(F, nrow=nhaps, ncol=npos)
+
+  for (readi in 1:nreads) {
+    read_seq <- seq[[readi]]
+    read_pos_ind <- pos_ind[[readi]]
+    for (hapi in 1:nhaps) {
+      matched <- haps[hapi,read_pos_ind] == read_seq
+      if (all(matched))
+        covered[hapi,read_pos_ind] <- T
+    }
+  }
+
+  consistent <- apply(covered, 1, all)
+  haps_out <- haps[consistent,,drop=F]
+
+  return (haps_out)
+}
 
 ############################
 # methods to edit read_table objects

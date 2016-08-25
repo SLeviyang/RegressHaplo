@@ -96,7 +96,9 @@ write.Haplo <- function(H, outfile)
   f <- get_freq.Haplo(H)
 
   h_f <- cbind(f, h)
-  write.table(h_f, outfile, row.names=F, col.names=F, sep=",")
+
+  write.table(h_f, outfile, row.names=F, col.names=F,
+              sep=",")
 
   return (NULL)
 }
@@ -108,4 +110,50 @@ read.Haplo <- function(infile)
   h <- as.matrix(h_f[,2:ncol(h_f)])
 
   return (Haplo(h, f))
+}
+
+#' Compare frequencies and haplotypes of H1 using
+#' the frequencies and haplotype of H2 as a base
+#'
+#' Calculate the distance from the H1 haplotype to the
+#' closest H2 haplotype.  Calculate the difference between
+#' the frequencies of H1 and the frequencies of H2
+compare.Haplo <- function(H1, H2)
+{
+  h1 <- get_hap.Haplo(H1)
+  h2 <- get_hap.Haplo(H2)
+
+  npos_h1 <- ncol(h1)
+  npos_h2 <- ncol(h2)
+
+  if (npos_h1 != npos_h2)
+    stop("haplotypes have different number of positions")
+
+  pi1 <- get_freq.Haplo(H1)
+  pi2 <- get_freq.Haplo(H2)
+
+  nh1 <- length(pi1)
+  nh2 <- length(pi2)
+
+  dist_m <- matrix(0, nrow=nh1, ncol=nh2)
+  for (i in 1:nh1)
+    for (j in 1:nh2)
+      dist_m[i,j] <- sum(h1[i,] != h2[j,])
+
+  dist_df <- adply(1:nh1, 1, function(hap_num) {
+    ind <- which.min(dist_m[hap_num,])
+    dist <- dist_m[hap_num, ind]
+    data.frame(hap_num=hap_num,
+               hap_match_num=ind,
+               dist=dist)
+  }, .id=NULL)
+
+
+
+  nh_min <- min(nh1, nh2)
+  pi_compare <- data.frame(hap_num=1:nh_min,
+                           pi1=pi1[1:nh_min],
+                           pi2=pi2[1:nh_min])
+
+  return (list(dist=dist_df, pi_diff=pi_compare))
 }

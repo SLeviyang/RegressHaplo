@@ -12,7 +12,7 @@ parameters.RegressHaplo <- function(df,
                                  min_cover=500)
 {
   # get the read table
-  rh <- filter_and_optimize.RegressHaploFiltered(df,
+  rh <- filter_and_optimize.RegressHaplo(df,
                              global_rho=NULL,
                              max_global_dim=max_global_dim,
                              max_local_dim=max_local_dim,
@@ -81,7 +81,7 @@ solutions.RegressHaplo <- function(y, P, num_trials,
         cat("TRIAL", counter, "OF", nsolutions, "\n")
 
         reg <- penalized_regression.RegressHaplo(y, P, pi=pi0, rho=rho, kk=kk)
-        # first four entries are fit, rho, K, internal_parameter
+        # first four entries are fit, rho, K, kk
         cK <- sum(reg$pi > 0)
         out_matrix[,counter] <- c(reg$fit, rho, cK, kk, reg$pi)
         counter <- counter + 1

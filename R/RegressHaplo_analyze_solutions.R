@@ -18,24 +18,17 @@
 #' of results_df, i.e. each optimization.  Each entry of results
 #' is a list containing h (haplotype matrix), pi (haplotype frequencies),
 #' and fit.
-RegressHaploSolutions <- function(solutions, h_full, Igor=F)
+RegressHaploSolutions <- function(solutions, h, Igor=F)
 {
-  results_dir <- get_simulated_read_data_dir(sim_num)
-
   df_list <- parse_solutions.RegressHaploSolutions(solutions)
   df_stats <- df_list$df_stats
   m_p <- as.matrix(df_list$df_p)
   colnames(m_p) <- NULL
   rownames(m_p) <- paste("solution", 1:nrow(m_p), sep="")
 
-  h_full <- read.table(data_files[["h"]], sep=",", header=T, check.names = F,
-                       colClasses = "character")
-  h_full <- as.matrix(h_full)
-
-
   return (list(df_stats=df_stats,
                m_p=m_p,
-               h=h_full))
+               h=h))
 }
 
 
@@ -51,10 +44,8 @@ RegressHaploSolutions <- function(solutions, h_full, Igor=F)
 #' @param animal animal to which this CSV file is associated
 #' @param wekk week to which this CSV file is associated
 #'
-#' @return A data.frame with the first four columns, rho, K, K_Igor, fit,
+#' @return A data.frame with the first four rows fit, rho, K, kk
 #' followed by columns of dimension p, giving the optimal result.
-#' K and K_Igor will be different because Igor counts an entry > 0 while
-#' K counts > .01.
 parse_solutions.RegressHaploSolutions <- function(solutions)
 {
   rhos <- as.numeric(solutions[2,])
