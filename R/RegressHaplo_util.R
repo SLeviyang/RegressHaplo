@@ -200,6 +200,8 @@ split_read_table.RegressHaplo <- function(df, min_cover, max_dim)
       pos <- as.numeric(pos_names.read_table(sdf_pre[[i]]))
 
       # check length of locus and if not too long, number of consistent haplotypes
+      # the max size of 1000 is there to avoid situations in which we would have to
+      # compute too many consistent haplotypes, say 1E6, which would take too long.
       if (max(pos)-min(pos) < 1000)
         hc <- consistent_haplotypes.read_table(sdf_pre[[i]], rm.na=T)
       else # set hc so we split

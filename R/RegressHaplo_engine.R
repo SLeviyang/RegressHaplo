@@ -168,8 +168,7 @@ optimize.engine <- function(y, P, rho, pi, mu, kk)
       grad <- grad_AL.engine(QQ, Py_more, pi)
       grad_error <- gradient_norm.engine(pi, grad, glaveps)
 
-      # SHOULD INNER LOOP COUNTER BE ALLOWED TO RISE TO 1E10??!!!!
-      if (grad_error < .1*total_error | inner_loop_counter > 1E10)
+      if (grad_error < .1*total_error | inner_loop_counter > 1000)
         break
 
     }
