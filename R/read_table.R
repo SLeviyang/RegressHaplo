@@ -745,10 +745,16 @@ paths_to_haplotypes.read_table <- function(paths, df)
 
 #' Split read table into loci with no spanning reads, create consistent
 #' haplotypes for each locus, and then combine to create full haplotypes
-consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500)
+consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500,
+                                                         max_num_haplotypes=20000)
 {
   sdf <- split_unlinked_loci.read_table(df_in, min_cover=min_cover, sort_loci = F)
-  con_haps <- lapply(sdf, consistent_haplotypes.read_table, rm.na=T)
+  con_haps <- lapply(sdf, consistent_haplotypes.read_table, rm.na=T,
+                     max_num_haplotypes=max_num_haplotypes)
+
+  # if any of the haplotypes are NULL, meaning too many paths, return NULL
+  if (any(sapply(con_haps, is.null)))
+    return (NULL)
 
   merged_haps <- merge_haplotypes.read_table(con_haps)
 
@@ -758,7 +764,8 @@ consistent_haplotypes_across_loci.read_table <- function(df_in, min_cover=500)
 #' Split read table into loci with no spanning single end reads, create
 #' consistent haplotypes for each locus, and then combine to create full
 #' haploptypes
-consistent_haplotypes.read_table <- function(df_in, rm.na=F)
+consistent_haplotypes.read_table <- function(df_in, rm.na=F,
+                                             max_num_haplotypes=20000)
 {
   paired_split_out <- split_paired_ends.read_table(df_in)
   df <- paired_split_out$df
@@ -766,13 +773,21 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F)
 
   # if there are no paired reads, then do not split or filter
   if (nrow(pairs)==0) {
-    haps <- consistent_haplotypes_single_end.read_table(df_in, rm.na=rm.na)
+    haps <- consistent_haplotypes_single_end.read_table(df_in, rm.na=rm.na,
+                                                        max_num_haplotypes=max_num_haplotypes)
     return (haps)
   }
 
   # split to create consistent haplotypes ignoring pairing of reads
   sdf <- split_unlinked_loci.read_table(df, min_cover=0, sort_loci = F)
-  con_haps <- lapply(sdf, consistent_haplotypes_single_end.read_table, rm.na=rm.na)
+  con_haps <- lapply(sdf, consistent_haplotypes_single_end.read_table, rm.na=rm.na,
+                     max_num_haplotypes=max_num_haplotypes)
+
+  # if any of the haplotypes are NULL, meaning too many paths, return NULL
+  if (any(sapply(con_haps, is.null))) {
+    return (NULL)
+  }
+
   merged_haps <- merge_haplotypes.read_table(con_haps)
 
   # filter with paired reads
@@ -782,7 +797,8 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F)
   return (consistent_haps)
 }
 
-consistent_haplotypes_single_end.read_table <- function(df, rm.na=F)
+consistent_haplotypes_single_end.read_table <- function(df, rm.na=F,
+                                                        max_num_haplotypes=20000)
 {
   m <- adjacency_matrix.read_table(df, sparse=T)
   nv <- nrow(m)
@@ -805,6 +821,10 @@ consistent_haplotypes_single_end.read_table <- function(df, rm.na=F)
   paths <- all_simple_paths(g, from=1, to=leaves,
                             mode="out")
   cat("found", length(paths), "paths\n")
+
+  if (length(paths) > max_num_haplotypes) {
+    return (NULL)
+  }
 
   # OLD CODE FOR COMPUTING HAPLOTYPES FROM PATHS.  TOO SLOW IN CASES WHERE
   # nhaps >> 1000.

@@ -129,7 +129,16 @@ nofilter_and_optimize.RegressHaplo <- function(df, rho,
     return (list(df=df, pi=NA, fit=NA, h=NA))
 
   h_consistent <- consistent_haplotypes_across_loci.read_table(df,
-                                                               min_cover = min_cover)
+                                                               min_cover = min_cover,
+                                                               max_num_haplotypes=max_dim)
+
+  # check if there were too many haplotypes
+  if (is.null(h_consistent))
+    return (list(df=df,
+                 pi=NA,
+                 fit=NA,
+                 h=NA))
+
   colnames(h_consistent) <- pos_names.read_table(df)
 
   if (nrow(h_consistent) > max_dim)
@@ -203,11 +212,19 @@ split_read_table.RegressHaplo <- function(df, min_cover, max_dim)
       # the max size of 1000 is there to avoid situations in which we would have to
       # compute too many consistent haplotypes, say 1E6, which would take too long.
       if (max(pos)-min(pos) < 1000)
-        hc <- consistent_haplotypes.read_table(sdf_pre[[i]], rm.na=T)
+        hc <- consistent_haplotypes.read_table(sdf_pre[[i]], rm.na=T,
+                                               max_num_haplotypes=max_dim)
       else # set hc so we split
         hc <- matrix(NA, nrow=max_dim+1, ncol=1)
 
-      if (nrow(hc) <= max_dim)
+      if (is.null(hc)) {
+        sdf_split <- split.read_table(sdf_pre[[i]])
+        if (is.null(sdf_split))
+          stop("BUG!  read table cannot be split to meet dimension requirements")
+
+        sdf_new <- append(sdf_new, list(sdf_split$df1, sdf_split$df2))
+      }
+      else if (nrow(hc) <= max_dim)
         sdf_new <- append(sdf_new, sdf_pre[i])
       else {
         sdf_split <- split.read_table(sdf_pre[[i]])
