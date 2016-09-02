@@ -23,6 +23,7 @@ RegressHaploSolutions <- function(solutions, h, Igor=F)
   df_list <- parse_solutions.RegressHaploSolutions(solutions)
   df_stats <- df_list$df_stats
   m_p <- as.matrix(df_list$df_p)
+
   colnames(m_p) <- NULL
   rownames(m_p) <- paste("solution", 1:nrow(m_p), sep="")
 
@@ -53,7 +54,9 @@ parse_solutions.RegressHaploSolutions <- function(solutions)
   fits <- as.numeric(solutions[1,])
   kk <- as.numeric(solutions[4,])
 
-  p_matrix <- t(as.matrix(solutions[5:nrow(solutions),]))
+  p_matrix <- matrix(as.numeric(solutions[5:nrow(solutions),]), byrow = T,
+                     nrow=ncol(solutions))
+  #p_matrix <- t(as.matrix(solutions[5:nrow(solutions),]))
   K <- apply(p_matrix, 1, function(p) sum(p > 0))
 
   df_out <- data.frame(rho=rhos, K=K, kk=kk, fit=fits, p_matrix)
@@ -149,7 +152,7 @@ best_fit.RegressHaploSolutions <- function(ir, K_val=NULL)
   if (is.null(K_val))
     K_val <- best_K.RegressHaploSolutions(ir)
 
-  if (!is.element(K_val, get_K.SimultionResults(ir)))
+  if (!is.element(K_val, get_K.RegressHaploSolutions(ir)))
     stop("K_val is not a K value in the solutions")
 
   df_stats <- filter(df_stats, K==K_val)
