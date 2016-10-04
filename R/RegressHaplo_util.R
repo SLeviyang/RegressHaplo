@@ -72,11 +72,14 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
   }
   colnames(h_consistent) <- pos_names.read_table(df)
 
+  loci <- lapply(h_local, colnames)
+
 #   # if not running optimization, then just return the consistent haplotypes
   if (!run_optimization | is.null(global_rho))
     return (list(df=df,
                  pi=NA,
                  fit=NA,
+                 loci=loci,
                  h=h_consistent))
 
   # compute_solution
@@ -85,6 +88,7 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
   return (list(df=df,
                pi=solution$pi,
                fit=solution$fit,
+               loci=loci,
                h=h_consistent))
 }
 
@@ -126,7 +130,7 @@ nofilter_and_optimize.RegressHaplo <- function(df, rho,
                               min_cover=500)
 {
   if (nrow(df)==0)
-    return (list(df=df, pi=NA, fit=NA, h=NA))
+    return (list(df=df, pi=NA, fit=NA, loci=NA, h=NA))
 
   h_consistent <- consistent_haplotypes_across_loci.read_table(df,
                                                                min_cover = min_cover,
@@ -137,14 +141,17 @@ nofilter_and_optimize.RegressHaplo <- function(df, rho,
     return (list(df=df,
                  pi=NA,
                  fit=NA,
+                 loci=NA,
                  h=NA))
 
   colnames(h_consistent) <- pos_names.read_table(df)
+  loci <- list(colnames(h_consistent))
 
   if (nrow(h_consistent) > max_dim)
     return (list(df=df,
                  pi=NA,
                  fit=NA,
+                 loci=loci,
                  h=h_consistent))
 
   solution <- compute_solution.RegressHaplo(df, h_consistent, rho)
@@ -152,6 +159,7 @@ nofilter_and_optimize.RegressHaplo <- function(df, rho,
   return (list(df=df,
                pi=solution$pi,
                fit=solution$fit,
+               loci=loci,
                h=h_consistent))
 }
 
@@ -176,6 +184,11 @@ get_df.RegressHaplo <- function(rh)
 get_fit.RegressHaplo <- function(rh)
 {
   return (rh$fit)
+}
+
+get_loci.RegressHaplo <- function(rh)
+{
+  return (rh$loci)
 }
 
 get_nonzero_solution.RegressHaplo <- function(rh)

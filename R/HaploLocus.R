@@ -10,8 +10,8 @@
 #' @export
 HaploLocus <- function(H, pos, locus_name=NA)
 {
-  if (class(H)[1] != "Haplo" | class(pos) != "numeric")
-    stop("H or pos of wrong class")
+ # if (class(H)[1] != "Haplo" | class(pos) != "numeric")
+#    stop("H or pos of wrong class")
 
   h <- get_hap.Haplo(H)
   if (ncol(h) != length(pos))

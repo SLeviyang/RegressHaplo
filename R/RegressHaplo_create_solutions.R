@@ -19,13 +19,14 @@ parameters.RegressHaplo <- function(df,
                              min_cover=min_cover,
                              run_optimization = F)
 
+  loci <- get_loci.RegressHaplo(rh)
   h <- get_h.RegressHaplo(rh)
   par <- penalized_regression_parameters.RegressHaplo(df, h)
 
   y <- matrix(par$y, ncol=1)
   P <- par$P
 
-  return (list(y=y, P=P, h=h))
+  return (list(y=y, P=P, h=h, loci=loci))
 }
 
 #' Solve the RegressHaplo optimization repeatedly

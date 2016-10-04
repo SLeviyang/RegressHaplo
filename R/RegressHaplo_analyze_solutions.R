@@ -136,7 +136,7 @@ best_K.RegressHaploSolutions <- function(rhs)
   df_K <- mutate(df_K, improvement=improvement)
 
   # find the last index at which improvement > 1.1
-  improved_ind <- which(improvement > 1.1)
+  improved_ind <- which(improvement > 1.2)
   if (length(improved_ind)==0)
     best_ind <- 1
   else

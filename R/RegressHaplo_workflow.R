@@ -36,7 +36,8 @@ bam_to_read_table.RegressHaplo <- function(bam_file, out_dir, min_freq=.01)
 #' @details The read table is assumed to be in out_dir with filename read_table.csv
 #' @return NULL
 #' @export
-read_table_to_parameters.RegressHaplo <- function(out_dir)
+read_table_to_parameters.RegressHaplo <- function(out_dir, min_cover=500,
+                                                  create_loci_file=T)
 {
   read_table_file <- paste(out_dir, "read_table.csv", sep="")
 
@@ -47,7 +48,7 @@ read_table_to_parameters.RegressHaplo <- function(out_dir)
   par <- parameters.RegressHaplo(df,
                                  max_global_dim=1200,
                                  max_local_dim=1200,
-                                 min_cover=500)
+                                 min_cover=min_cover)
 
   y <- matrix(par$y, ncol=1)
   P <- par$P
@@ -61,6 +62,16 @@ read_table_to_parameters.RegressHaplo <- function(out_dir)
   write.table(P, P_file, sep=",", row.names=F, col.names=F)
   write.table(h, h_file, sep=",", row.names=F,
               col.names=T)
+
+  if (create_loci_file) {
+    loci_file <- paste(out_dir, "loci.csv", sep="")
+    con <- file(loci_file, open="w")
+    loci_pos <- sapply(par$loci, function(locus) {
+      paste(locus, collapse=", ")
+    })
+    writeLines(loci_pos, con)
+    close(con)
+  }
 
   return (NULL)
 }
@@ -170,4 +181,12 @@ get_solutions_workflow.RegressHaplo <- function(out_dir)
   colnames(sol_m) <- NULL
 
   return (sol_m)
+}
+
+get_HAPLO_workflow.RegressHaplo <- function(out_dir)
+{
+  hfile <- paste(out_dir, "HAPLO.csv", sep="")
+
+  H <- read.Haplo(hfile)
+  return (H)
 }
