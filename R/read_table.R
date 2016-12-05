@@ -3,12 +3,12 @@
 
 #' Read table constructor
 #'
-#' Create a read table from a BAM file and list of variable nt positions
+#' Create a read table from a BAM file and variant calls
 #'
 #' @param bam_file
-#' @param bai_file index file
-#' @param nt_pos A numeric vector of nt positions relative to the reference at which we consider
-#' variation
+#' @param bai_file index file.  If missing then .bai appendix on bam_file is assumed.
+#' @param variant_calls.  A data.frame specifying positions and nucleotides on
+#' reference to be taken as true variants, see details.
 #'
 #' @return
 #' A data.frame with columns:  count pos1 pos2 .. posn.
@@ -18,19 +18,27 @@
 #' The count column gives the number of reads
 #' with the values specified in the posi columns.  Every read is listed in the table, so
 #' that the sum of the count column gives the total number of reads.
-#' The posi are the entries of nt_pos, i.e. posi==as.character(nt_pos[i]).
-#' Entries in the posi columns are either A/C/G/T/-/NA.
+#' The posi are the positions specified by variant_calls, i.e. posi==as.character(variant_calls$pos[i]).
+#' Entries in the posi columns are either A/C/G/T/-/NA.  NA means the read did not cover that variable
+#' position.
 #'
-#' @details insertions are ignored.
+#' @details variant_calls has 6 columns which must be names as c("pos", "A", "C", "G", "T", "-").
+#' pos gives the position at which a true variant exists.  The other columns have logical entries,
+#' with TRUE meaning that a true variant exists with the corresponding nucleotide.
+#'
 #' @export
 read_table <- function(bam_file,
                        bai_file=NULL,
-                       nt_pos)
+                       variant_calls)
 {
   if (is.null(bai_file)) {
     bai_file <- paste(bam_file, ".bai", sep="")
   }
+  cat("parsing", bam_file, "\n")
 
+  # on first pass retrieve all variants at called positions
+  # then filter for correct variants, see bottom of function
+  nt_pos <- variant_calls$pos
   start_pos <- min(nt_pos)
   end_pos <- max(nt_pos)
 
@@ -95,6 +103,12 @@ read_table <- function(bam_file,
   names(df) <- c("count", as.character(nt_pos))
 
   class(df) <- c("read_table", "data.frame")
+
+  # now remove variants which are not called
+  cat("filtering for variant calls", "\n")
+  pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0, min_mapq=0)
+  consensus_values <- consensus(pu)[variant_calls$pos]
+  df <- filter_true_variants.read_table(df, variant_calls, consensus_values)
 
   return (df)
 }
@@ -214,14 +228,14 @@ paired_end_read_table <- function(ga_pair,
 #' @export
 pos_names.read_table <- function(df)
 {
-  return (names(select(df, -count)))
+  return (names(dplyr::select(df, -count)))
 }
 
 #' Return the consensus sequence at each position of the read table
 #' @export
 consensus.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   nucs <- apply(df_nucs, 2, function(cc) {
     nuc_t <- table(cc)
     if (length(nuc_t)==0)
@@ -241,7 +255,7 @@ consensus.read_table <- function(df)
 coverage.read_table <- function(df)
 {
   counts <- df$count
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   coverage <- apply(df_nucs, 2, function(cc) {
     active <- which(!is.na(cc))
     sum(counts[active])
@@ -271,7 +285,7 @@ coverage.read_table <- function(df)
 #' @export
 template_alleles.read_table <- function(template, df, match=F)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   counts <- df$count
   if (length(template) != ncol(df_nucs))
     stop("template length does not match number of positions in read table")
@@ -314,6 +328,37 @@ template_alleles.read_table <- function(template, df, match=F)
   return (unique_allele_counts)
 }
 
+#' Return read indices corresponding to the template
+#'
+#' @param template A logical vector or matrix. If matrix, rows
+#' contain templates.  Templates must be unique
+#' @param df a read table
+#'
+#' @returns A list containing indices in df or read groups (rows)
+#' that have the given templates
+#' @export
+template_indices.read_table <- function(template, df)
+{
+  if (!is.matrix(template))
+    template <- matrix(template, nrow=1)
+
+  template_s <- apply(template, 1, function(s)
+    paste(as.numeric(s), collapse=""))
+
+  if (length(template_s) != length(unique(template_s)))
+    stop("templates must be unique")
+
+  df_reads <- as.matrix(dplyr::select(df, -count))
+  df_s <- apply(df_reads, 1, function(s) {
+    z <- as.numeric(!is.na(s))
+    paste(z, collapse="")
+  })
+
+  ind <- lapply(template_s, function(s) which(df_s==s))
+
+  return (ind)
+}
+
 #' Retrieve all templates matching at least one read in the
 #' read table
 #'
@@ -327,7 +372,7 @@ template_alleles.read_table <- function(template, df, match=F)
 #' @export
 templates.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   template_m <- matrix(!is.na(df_nucs),
                        nrow=nrow(df_nucs),
                        ncol=ncol(df_nucs))
@@ -341,7 +386,7 @@ templates.read_table <- function(df)
 #' number of positions.  A TRUE entry means the read covers the position
 reads_covering_positions.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
 
   m <- sapply(1:ncol(df_nucs), function(i) {
     ind <- !is.na(df_nucs[,i])
@@ -365,7 +410,7 @@ reads_covering_positions.read_table <- function(df)
 #' @export
 reads_covering_haplotypes.read_table <- function(df, h)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   pos_m <- reads_covering_positions.read_table(df)
   if (ncol(pos_m) != ncol(h))
     stop("haplotype and read table do not have same number of positions")
@@ -389,7 +434,7 @@ reads_covering_haplotypes.read_table <- function(df, h)
 #' @export
 nucs_at_pos.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
 
   M <- sapply(1:ncol(df_nucs), function(i) {
     all_nuc_vec <- rep(0, 5)
@@ -451,7 +496,7 @@ end_pos.read_table <- function(df)
 #' @export
 all_pos.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   nrg <- nrow(df_nucs)
   pos <- as.numeric(names(df_nucs))
 
@@ -471,7 +516,7 @@ all_pos.read_table <- function(df)
 #' @export
 seq.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   nrg <- nrow(df_nucs)
 
   seq <- lapply(1:nrg, function(i) {
@@ -596,7 +641,7 @@ adjacency_matrix.read_table <- function(df, sparse=T)
 #' @export
 unlinked_pos.read_table <- function(df, min_cover)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   npos <- ncol(df_nucs)
   pos_ch <- pos_names.read_table(df)
   pos <- as.numeric(pos_ch)
@@ -640,7 +685,7 @@ unlinked_pos.read_table <- function(df, min_cover)
 #' rows that are paired in the returned data.frame
 split_paired_ends.read_table <- function(df)
 {
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   # if not paired_read, return 0, otherwise return index in df_nucs
   #  that splits the two reads
 
@@ -797,10 +842,73 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F,
   return (consistent_haps)
 }
 
+#' Quickly determine the number of paths in an adjacency matrix exceed
+#' a lower limit
+#'
+#' @param m adjacency matrix
+#' @param paths_cutoff threshold for number of paths
+#'
+#' @details number of paths are determined by dynamic programming algorith
+#' that is O(V+E).  The quick part is that once the number of paths
+#' exceeds num_paths, the algorithm exits.   This is needed when the number
+#' of edges is very large and we would waste time computing the total
+#' number of paths.
+#'
+#' @return NA if number of paths exceeds num_paths, otherwise
+#' returns the number of paths.
+paths_exceed_limit.read_table <- function(m, paths_cutoff)
+{
+  nv <- nrow(m)
+
+  # find current roots (vertices with no parents)
+  current_roots <- which(sapply(1:nv, function(i) all(m[,i]==0)))
+  # find leaves
+  leaves <- which(sapply(1:nv, function(i) all(m[i,]==0)))
+
+  # make global root and sink
+  mplus <- matrix(0, nrow=nv+2, ncol=nv+2)
+  mplus[2:(nv+1),2:(nv+1)] <- m
+  mplus[1,current_roots+1] <- 1
+  mplus[leaves+1,nv+2] <- 1
+
+  g <- graph.adjacency(mplus, mode="directed")
+  topo_order <- topo_sort(g, mode="out")
+  nv <- length(topo_order)
+
+  num_paths <- rep(NA, nv)
+  num_paths[nv] <- 1
+
+  for (i in (nv-1):1) {
+    cv <- topo_order[i]
+
+    child_ind <- which(mplus[cv,]==1)
+    np <- num_paths[child_ind]
+
+    # debug!
+    if (any(is.na(np)))
+      stop("bug in path counts")
+
+    num_paths[cv] <- sum(np)
+
+    # for now let's allow the number of paths to be returned
+    if (num_paths[cv] > paths_cutoff)
+      return (NA)
+  }
+
+  return (num_paths[1])
+}
+
 consistent_haplotypes_single_end.read_table <- function(df, rm.na=F,
                                                         max_num_haplotypes=20000)
 {
   m <- adjacency_matrix.read_table(df, sparse=T)
+  z <- paths_exceed_limit.read_table(m, max_num_haplotypes)
+  cat("number of paths in locus", z, "\n")
+
+  # quick check to see if the number of paths is too large
+  if (is.na(z))
+    return (NULL)
+
   nv <- nrow(m)
 
   # find current roots (vertices with no parents)
@@ -825,47 +933,6 @@ consistent_haplotypes_single_end.read_table <- function(df, rm.na=F,
   if (length(paths) > max_num_haplotypes) {
     return (NULL)
   }
-
-  # OLD CODE FOR COMPUTING HAPLOTYPES FROM PATHS.  TOO SLOW IN CASES WHERE
-  # nhaps >> 1000.
-
-  # convert paths to haplotypes, remember read groups
-  # are shifted by 1 and root should be ignored
-#  seq <- seq.read_table(df)
-#  pos <- all_pos.read_table(df)
-#  unique_pos <- sort(unique(unlist(pos)))
-
-
-#   print("converting paths to haplotypes")
-#   haplotypes_all_paths <- lapply(paths, function(p) {
-#     p <- p[-1] - 1
-#
-#     # for each vertex, get the sequence and positions
-#     hap_df_list <- lapply(p, function(i)
-#       data.frame(seq=seq[[i]],
-#                  pos=pos[[i]], stringsAsFactors=F))
-#     hap_df <- do.call(rbind, hap_df_list)
-#
-#     # hap_df will have overlaps, make everything
-#     hap_df_unique <- ddply(hap_df, .(pos), function(pdf) {
-#       if (length(unique(pdf$seq))>1)
-#         stop("graph edges are not correct!")
-#       data.frame(seq=pdf$seq[1], pos=pdf$pos[1], stringsAsFactors = F)
-#     })
-#     missing_pos <- setdiff(unique_pos, hap_df_unique$pos)
-#     if (length(missing_pos)>0)
-#       hap_df_unique <- rbind(hap_df_unique,
-#                              data.frame(seq=NA,
-#                                         pos=missing_pos))
-#
-#     hap_df_unique <- hap_df_unique[order(hap_df_unique$pos),]
-#
-#     matrix(hap_df_unique$seq, nrow=1)
-#   })
-#
-#   haplotypes_all_paths <- do.call(rbind, haplotypes_all_paths)
-#   print("done converting")
-
 
   paths_shifted <- lapply(paths, function(p) p[-1] - 1)
   haplotypes_all_paths <- paths_to_haplotypes.read_table(paths_shifted, df)
@@ -926,7 +993,51 @@ filter_haplotypes_with_paired_ends.read_table <- function(df, haps)
 ############################
 # methods to edit read_table objects
 
+#' Filter read table for variant calls
+#'
+#' @param df read_table
+#' @param variant_calls variant calls data.frame, see read_table() help
+#' @param consensus_values consensus nucleotides at variable positions
+#'
+#' @details nrow of variant calls must equal length of conseunsus values
+#'
+#' @return a data.frame in which errors (i.e. not called varaints) are replaced
+#' by the consensus value.
+filter_true_variants.read_table <- function(df, variant_calls, consensus_values)
+{
+   df_vp <- pos_names.read_table(df)
+   vc_vp <- as.character(variant_calls$pos)
+   if (length(df_vp) != length(vc_vp))
+     stop("read table variable positions do not match variant calls")
+   else if (any(df_vp != vc_vp))
+     stop("read table variable positions must mach variant call positions")
 
+   if (length(consensus_values) != nrow(variant_calls))
+     stop("consensus values do not match variant calls")
+
+   nvp <- length(variant_calls$pos)
+   vc <- as.matrix(dplyr::select(variant_calls, -pos))
+   nucs <- colnames(vc)
+
+   for (i in 1:nvp) {
+     error_nucs <- nucs[!vc[i,]]
+     ind <- which(is.element(df[,i+1], error_nucs))
+     df[ind,i+1] <- consensus_values[i]
+   }
+
+   df <- regroup.read_table(df)
+   return (df)
+}
+
+#' Clean read table
+#'
+#' @param df read table
+#' @param min_count remove rows with count below
+#' @param remove_outside_reads remove rows with all NA
+#' @param remove_empty_cols remove cols with all NA
+#' @param remove_non_variant_pos remove cols with only 1 value other than NA
+#' @param remove_deletions replace "-" with NA
+#' @param remove_partial_cover_reads remove rows with one or more NA
 clean.read_table <- function(df, min_count=10,
                            remove_outside_reads=T,
                            remove_empty_cols=T,
@@ -937,11 +1048,11 @@ clean.read_table <- function(df, min_count=10,
   df <- filter(df, count >= min_count)
 
   if (remove_empty_cols) {
-    df_var <- select(df, -count)
+    df_var <- dplyr::select(df, -count)
     empty_col <- apply(df_var, 2, function(x) {
       all(is.na(x))
     })
-    df <- select(df, which(c(T,!empty_col)))
+    df <- dplyr::select(df, which(c(T,!empty_col)))
   }
 
   if (remove_deletions) {
@@ -953,15 +1064,15 @@ clean.read_table <- function(df, min_count=10,
   }
 
   if (remove_non_variant_pos) {
-    df_var <- select(df, -count)
+    df_var <- dplyr::select(df, -count)
     no_variation <- apply(df_var, 2, function(x) {
       length(table(x))==1
     })
-    df <- select(df, which(c(T,!no_variation)))
+    df <- dplyr::select(df, which(c(T,!no_variation)))
   }
 
   if (remove_outside_reads) {
-    df_var <- select(df, -count)
+    df_var <- dplyr::select(df, -count)
     outside_ind <- apply(df_var, 1, function(x) all(is.na(x)))
     df <- filter(df, !outside_ind)
   }
@@ -970,7 +1081,7 @@ clean.read_table <- function(df, min_count=10,
     return (df)
 
   if (remove_partial_cover_reads) {
-    df_var <- select(df, -count)
+    df_var <- dplyr::select(df, -count)
     partial_ind <- apply(df_var, 1, function(x) any(is.na(x)))
     df <- filter(df, !partial_ind)
   }
@@ -981,6 +1092,57 @@ clean.read_table <- function(df, min_count=10,
   df <- regroup.read_table(df)
 
   return(df)
+}
+
+#' Remove reads that are below error noise.
+#'
+#' @param df read table
+#' @param error_freq average error frequency over all nucleotide
+#' positions
+#'
+#' @return a read table with errors that are below noise threshold
+#' removed
+error_filter.read_table <- function(df, error_freq, sig)
+{
+  # empty line in data.fram 1926
+   temp <- templates.read_table(df)
+   ntemp <- length(temp)
+   # row in df corresponding to each template
+   temp_read_ind <- template_indices.read_table(temp, df)
+   # counts for each row in df corresponding to each template
+   temp_counts <- lapply(temp_read_ind, function(ind) df$count[ind])
+   # number of variable positions in each template
+   temp_num_pos <- apply(temp, 1, sum)
+
+
+   keep_ind <- Map(function(ind, counts, npos, i) {
+     total <- sum(counts)
+
+     if (total < 100)
+       return (NULL)
+
+     mu <- total*error_freq
+     # do we reject a single read group
+     if (ppois(1, mu) > (1 - sig)) {
+       return (NULL)
+     }
+
+     above_noise <- ppois(counts, mu) > (1 - sig)
+     above_noise_ind <- ind[above_noise]
+     above_noise_counts <- counts[above_noise]
+
+     if (sum(above_noise_counts) < 100)
+       return (NULL)
+
+     return (above_noise_ind)
+   }, temp_read_ind, temp_counts, temp_num_pos,
+   1:length(temp_read_ind))
+
+   keep_ind_vec <- unlist(keep_ind)
+   df_filtered <- df[keep_ind_vec,]
+  # bad_ind <- setdiff(1:nrow(df), keep_ind_vec)
+
+   return (df_filtered)
 }
 
 #' Merges identical read over an edited read table
@@ -998,7 +1160,7 @@ clean.read_table <- function(df, min_count=10,
 regroup.read_table <- function(df)
 {
   nreads <- nrow(df)
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
 
   # read_strings uniquely identify each read
   read_strings <- apply(df_nucs, 1, paste, collapse="/")
@@ -1010,7 +1172,7 @@ regroup.read_table <- function(df)
     rdf$count[1] <- count
     rdf[1,]
   })
-  regrouped_df <- select(regrouped_df, -read_strings)
+  regrouped_df <- dplyr::select(regrouped_df, -read_strings)
 
   return (regrouped_df)
 }
@@ -1099,8 +1261,8 @@ join_unlinked_loci_pair.read_table <- function(df1, df2)
 
   all_count <- c(df1$count, df2$count)
 
-  df1_nucs <- select(df1, -count)
-  df2_nucs <- select(df2, -count)
+  df1_nucs <- dplyr::select(df1, -count)
+  df2_nucs <- dplyr::select(df2, -count)
 
   df1_addon <- data.frame(matrix(as.character(NA), nrow=nrow(df2), ncol=ncol(df1_nucs)),
                           stringsAsFactors = F)
@@ -1156,7 +1318,7 @@ plot_cover.read_table <- function(df, min_cover=1000)
   ind_order <- order(start_pos, n_nucs, decreasing = F)
   df <- df[ind_order,]
 
-  df_nucs <- select(df, -count)
+  df_nucs <- dplyr::select(df, -count)
   npos <- ncol(df_nucs)
   pos <- names(df_nucs)
   nreads <- nrow(df_nucs)

@@ -126,6 +126,7 @@ template_fit.readFit <- function(template_m, df, h, pi=NULL)
 #' @return A numeric vector of 1's and 0's
 haplotype_match.readFit <- function(nucs, h)
 {
+
   if (class(nucs) != "matrix")
     nucs <- matrix(nucs, nrow=1)
 

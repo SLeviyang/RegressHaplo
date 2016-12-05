@@ -208,65 +208,56 @@ get_nonzero_solution.RegressHaplo <- function(rh)
   return (list(h=h_nonzero, pi=pi_nonzero))
 }
 
-split_read_table.RegressHaplo <- function(df, min_cover, max_dim)
-{
-  # split based on loci first
-  sdf <- split_unlinked_loci.read_table(df, sort_loci=F, min_cover=min_cover)
-
-  # cycle through until all read tables have less than max_dim consistent haplotypes
-  # and cover less than 1000 bp
-  sdf_pre <- sdf
-  repeat {
-    sdf_new <- list()
-    for (i in 1:length(sdf_pre)) {
-      pos <- as.numeric(pos_names.read_table(sdf_pre[[i]]))
-
-      # check length of locus and if not too long, number of consistent haplotypes
-      # the max size of 1000 is there to avoid situations in which we would have to
-      # compute too many consistent haplotypes, say 1E6, which would take too long.
-      if (max(pos)-min(pos) < 1000)
-        hc <- consistent_haplotypes.read_table(sdf_pre[[i]], rm.na=T,
-                                               max_num_haplotypes=max_dim)
-      else # set hc so we split
-        hc <- matrix(NA, nrow=max_dim+1, ncol=1)
-
-      if (is.null(hc)) {
-        sdf_split <- split.read_table(sdf_pre[[i]])
-        if (is.null(sdf_split))
-          stop("BUG!  read table cannot be split to meet dimension requirements")
-
-        sdf_new <- append(sdf_new, list(sdf_split$df1, sdf_split$df2))
-      }
-      else if (nrow(hc) <= max_dim)
-        sdf_new <- append(sdf_new, sdf_pre[i])
-      else {
-        sdf_split <- split.read_table(sdf_pre[[i]])
-        if (is.null(sdf_split))
-          stop("BUG!  read table cannot be split to meet dimension requirements")
-
-        sdf_new <- append(sdf_new, list(sdf_split$df1, sdf_split$df2))
-      }
-    }
-
-    if (length(sdf_new)==length(sdf_pre))
-      break
-    else
-      sdf_pre <- sdf_new
-
-  }
-
-  return (sdf_new)
-}
 
 
-compute_solution.RegressHaplo <- function(df, h_full, rho)
+#' Fit regression for a given rho
+#'
+#' @param df read table
+#' @param h_full haplotype matrix
+#' @param rho rho to be used in regression
+#'
+#' @return A list with entries pi and fit.  pi gives the frequencies
+#' estimated for h_full and fit gives a fit value.
+compute_solution.RegressHaplo <- function(df, h_full, rho,
+                                          verbose=T)
 {
   kk <- 2
   par <- penalized_regression_parameters.RegressHaplo(df, h_full)
   rout <- penalized_regression.RegressHaplo(par$y, par$P, pi=NULL,
-                                               rho=rho, kk=kk)
+                                               rho=rho, kk=kk,
+                                            verbose=verbose)
 
   return (rout)
+}
+
+number_global_haplotypes.RegressHaplo <- function(local_rho, ldf, max_num_haplotypes)
+{
+  h_local <- Map(function(cdf, i) {
+
+    haps <- consistent_haplotypes.read_table(cdf, rm.na=T,
+                                             max_num_haplotypes = max_num_haplotypes)
+    if (is.null(haps)) {
+      cat("locus ", i, "has read table with too many paths\n")
+      cat("read_table_to_loci.pipeline was not run.  If it was, please open issue in github.")
+      stop("bad locus")
+    }
+    # rho==0 means no filtering, so don't waste time by regressin
+    if (local_rho==0)
+      return (haps)
+
+    par <- penalized_regression_parameters.RegressHaplo(cdf, haps)
+    rh <- penalized_regression.RegressHaplo(par$y, par$P, rho=local_rho, kk=2, verbose=F)
+    pi <- get_pi.RegressHaplo(rh)
+
+    filtered_haps <- haps[pi>0,,drop=F]
+
+    return (filtered_haps)
+  }, ldf, 1:length(ldf))
+
+  nhaps_local <- sapply(h_local, nrow)
+  total_haps <- prod(nhaps_local)
+
+  return (total_haps)
 }
 
 
@@ -297,32 +288,9 @@ haplotype_permute.RegressHaplo <- function(h_list)
   colnames(haps) <- pos
   return (haps)
 }
-#
-# EM.RegressHaplo <- function(df, h, max.iterations=100)
-# {
-#   K <- nrow(h)
-#   pi <- runif(K)
-#   pi <- pi/sum(pi)
-#   phi <- phi.RegressHaplo(df, h)
-#   # pi <- rep(1/K,K)
-#
-#   for (i in 1:max.iterations) {
-#     #print(i)
-#
-#     assign <- read_assignment_prob_matrix.PredictHaplo(df,
-#                                                        matrix(pi, nrow=1),
-#                                                        phi)
-#   #  assign <- read_assignment_prob_matrix.Shorah (df, pi, h)
-#     count_m <- matrix(df$count, nrow=K,
-#                       ncol=nrow(df),
-#                       byrow=T)
-#     assign_count <- assign*count_m
-#
-#     pi <- rowSums(assign_count/sum(df$count))
-#   }
-#
-#   return (pi)
-# }
+
+##################################################################
+# Core RegressHaplo API:  parameter calculation and regression computation
 
 #' Returns the matrices and vectors associated with the regression
 #' optimization
@@ -359,14 +327,16 @@ penalized_regression_parameters.RegressHaplo <- function(df, h)
 
 #' Solves min_pi |y - P*pi|^2 + rho*pi^T*M*pi
 #' @export
-penalized_regression.RegressHaplo <- function(y, P, pi=NULL, rho, kk)
+penalized_regression.RegressHaplo <- function(y, P, pi=NULL, rho, kk=2,
+                                              verbose=T)
 {
   if (is.null(pi)) {
     pi <- runif(ncol(P))
     pi <- pi/sum(pi)
   }
 
-  pi_full <- optimize.engine(y=y, P=P, rho=rho, pi=pi, mu=0, kk=kk)
+  pi_full <- optimize.engine(y=y, P=P, rho=rho, pi=pi, mu=0, kk=kk,
+                             verbose=verbose)
 
   # keep only significant frequencies
   ind <- pi_full > 10^-3
@@ -374,7 +344,8 @@ penalized_regression.RegressHaplo <- function(y, P, pi=NULL, rho, kk)
   P_short <- P[,ind,drop=F]
 
   if (length(pi_short0) > 1)
-    pi_short <- optimize.engine(y=y, P=P_short, rho=0, pi=pi_short0, mu=0, kk=kk)
+    pi_short <- optimize.engine(y=y, P=P_short, rho=0, pi=pi_short0,
+                                mu=0, kk=kk, verbose=verbose)
   else
     pi_short <- pi_short0
 

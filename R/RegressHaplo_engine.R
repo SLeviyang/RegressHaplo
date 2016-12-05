@@ -87,7 +87,8 @@ debug_optimize.engine <- function(rho, mu, kk)
 
 
 
-optimize.engine <- function(y, P, rho, pi, mu, kk)
+optimize.engine <- function(y, P, rho, pi, mu, kk,
+                            verbose=T)
 {
   glaveps <- 1E-6
 
@@ -133,8 +134,9 @@ optimize.engine <- function(y, P, rho, pi, mu, kk)
     L <- 1.25*max_Hessian_eigenvalue.engine(QQ)
     inner_loop_counter <- 0
 
-    cat("OUTER LOOP", outer_loop_counter, total_error,
-        constraint_value.engine(pi), "\n")
+    if (verbose)
+      cat("OUTER LOOP", outer_loop_counter, total_error,
+          constraint_value.engine(pi), "\n")
 
     #debug
     #grad <- grad_AL.engine(QQ, Py_more, pi)

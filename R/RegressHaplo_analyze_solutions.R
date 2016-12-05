@@ -122,7 +122,7 @@ best_K.RegressHaploSolutions <- function(rhs)
 {
   df_stats <- get_stats_df.RegressHaploSolutions(rhs)
 
-  df <- select(df_stats, fit, K)
+  df <- dplyr::select(df_stats, fit, K)
   df_K <- ddply(df, .(K), function(cdf) {
     data.frame(fit=min(cdf$fit), K=cdf$K[1])
   })
