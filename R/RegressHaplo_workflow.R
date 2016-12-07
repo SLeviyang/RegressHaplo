@@ -4,8 +4,20 @@
 #' @param bam_file path to bam file
 #' @param out_dir output directory, will be created if needed.  variant call file
 #' will be placed in the output directory
+#' @param sig significance level at which variants will be called.  An automatic
+#' bonferroni correction is applied to account for the number of positions in the
+#' reference.
+#' @param heavy_tail If T, then a betabinomial is used to call errors following Gerstung et al
+#' 2011. If F, then a poisson is used to call variants following Wang et al 2007
 #'
 #' @return path to variant call file
+#'
+#' @references Wang,C. et al. (2007) Characterization of mutation
+#' spectra with ultra-deep pyrosequencing: application to HIV-1 drug
+#' resistance. Genome Res., 17, 1195–1201,
+#' @references Gerstung et al. (2011) Reliable detection of subclonal
+#' single-nucleotide variants in tumour cell populations.  Nature
+#' Communications.
 #'
 #' @details variant calls are given by a data.frame with 6 columns
 #' named c("pos", "A", "C", "G", "T", "-") pos gives the position at which a
@@ -39,6 +51,7 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 #' Given a bam file, create a read table
 #' @param bam_file path to bam file
 #' @param out_dir output directory, will be created if needed
+#' @param sig significance levels at which to filter reads.
 #'
 #' @details Converts bam_file to a raw read table, written to
 #' $outdir/raw_read_table.csv and then applies error correction
@@ -48,7 +61,8 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 #' @return path to read table file
 #' @export
 bam_to_read_table.pipeline <- function(bam_file,
-                                       out_dir)
+                                       out_dir,
+                                       sig=.01)
 {
   out_dir <- fix_out_dir(out_dir)
   variant_calls <- get_variant_calls.pipeline(out_dir)
@@ -67,7 +81,10 @@ bam_to_read_table.pipeline <- function(bam_file,
                          remove_partial_cover_reads = F)
 
   # filter reads based on Poisson error model to construct read table
-  df_filter <- error_filter.read_table(df, .007, .01/600)
+  pu <- VSeqTools::BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
+                              min_mapq=0)
+  error_rate <- VSeqTools::get_error_rate(pu, split_by_nuc=F)
+  df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
   read_table_file <- paste(out_dir, "read_table.csv", sep="")
   write.table(df_filter, read_table_file, sep=",", row.names=F)
 
@@ -257,18 +274,22 @@ haplotypes_to_parameters.pipeline <- function(out_dir)
 #'
 #' @param out_dir output directory for parameter files and assumed
 #' directory of parameter files
+#' @param num_trials number of starting points to try in attempting to find
+#' a global min for each rho values
+#' @param rho_values rho values to use in finding global min.
 #'
 #' @details The parameter files assumed to exist are y.csv, P.csv, h.csv
 #' @return path to haplotype file
 #' @export
-parameters_to_solutions.pipeline <- function(out_dir, num_trials=100)
+parameters_to_solutions.pipeline <- function(out_dir, num_trials=100,
+                                             rho_vals=c(.1,1,5,10,20))
 {
   y <- get_y.pipeline(out_dir)
   P <- get_P.pipeline(out_dir)
 
   solutions <- solutions.RegressHaplo(y, P,
                                       num_trials=num_trials,
-                                      rho_vals=c(.1,1,5,10,20),
+                                      rho_vals=rho_vals,
                                       kk_vals=2)
 
   out_dir <- fix_out_dir(out_dir)
@@ -294,7 +315,6 @@ solutions_to_haplotypes.pipeline <- function(out_dir)
   rhs <- RegressHaploSolutions(s, h)
 
   H <- best_fit.RegressHaploSolutions(rhs, K_val = NULL)$H
-  browser()
 
   out_dir <- fix_out_dir(out_dir)
   H_file <- paste(out_dir, "final_haplo.csv", sep="")
@@ -311,15 +331,20 @@ solutions_to_haplotypes.pipeline <- function(out_dir)
 #' @param num_trials number of trials to run in order to find optimal solution
 #'
 #' @export
-full_pipeline <- function(bam_file, out_dir, variant_calls,
-                                  num_trials=100)
+full_pipeline <- function(bam_file, out_dir,
+                          rho_vals=c(.1,1,5,10),
+                          sig=.01, num_trials=100, heavy_tail=T)
 {
-  bam_to_read_table.pipeline(bam_file, variant_calls=variant_calls, out_dir)
-  read_table_to_parameters.pipeline(out_dir)
-  parameters_to_solutions.pipeline(out_dir, num_trials=num_trials)
-  H_file <- solutions_to_haplotypes.pipeline(out_dir)
+  bam_to_variant_calls.pipeline(bam_file, out_dir, sig=sig, heavy_tail=heavy_tail)
+  bam_to_read_table.pipeline(bam_file, out_dir)
+  read_table_to_loci.pipeline(out_dir, min_cover=500, max_num_haplotypes=1200)
+  loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=1200)
+  haplotypes_to_parameters.pipeline(out_dir)
+  parameters_to_solutions.pipeline(out_dir, num_trials=num_trials,
+                                               rho_vals=rho_vals)
+  solutions_to_haplotypes.pipeline(out_dir)
 
-  return (H_file)
+  return (NULL)
 }
 
 #####

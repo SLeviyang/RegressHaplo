@@ -1097,8 +1097,8 @@ clean.read_table <- function(df, min_count=10,
 #' Remove reads that are below error noise.
 #'
 #' @param df read table
-#' @param error_freq average error frequency over all nucleotide
-#' positions
+#' @param error_freq per position error rate
+#' @param sig significance level at which to filter out errors.
 #'
 #' @return a read table with errors that are below noise threshold
 #' removed
@@ -1107,6 +1107,7 @@ error_filter.read_table <- function(df, error_freq, sig)
   # empty line in data.fram 1926
    temp <- templates.read_table(df)
    ntemp <- length(temp)
+
    # row in df corresponding to each template
    temp_read_ind <- template_indices.read_table(temp, df)
    # counts for each row in df corresponding to each template
