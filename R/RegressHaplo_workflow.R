@@ -35,7 +35,12 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
   #bonferroni correction
   bf_sig <- sig/nrow(pu)
 
-  vc <- variant_calls(pu, sig=bf_sig, heavy_tail=heavy_tail)
+  # if sig==0, no error correction
+  if (sig==0)
+    vc <- variant_calls(pu, min_freq=1E-5)
+  else
+    vc <- variant_calls(pu, sig=bf_sig, heavy_tail=heavy_tail)
+
   vc_pos <- get_variant_call_pos(vc)
 
   vc <- vc[vc_pos,]
@@ -81,10 +86,12 @@ bam_to_read_table.pipeline <- function(bam_file,
                          remove_partial_cover_reads = F)
 
   # filter reads based on Poisson error model to construct read table
+  # and minimum threshold for each read partition
   pu <- VSeqTools::BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
                               min_mapq=0)
   error_rate <- VSeqTools::get_error_rate(pu, split_by_nuc=F)
   df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
+
   read_table_file <- paste(out_dir, "read_table.csv", sep="")
   write.table(df_filter, read_table_file, sep=",", row.names=F)
 
@@ -134,6 +141,10 @@ read_table_to_loci.pipeline <- function(out_dir, min_cover=500,
     sdf <- sdf_next
     cat("processed:", length(sdf_final), "tobe:", length(sdf), "\n")
   } # end while loop
+
+  # we need to sort sdf_final since the loci might not be in order
+  first_pos <- sapply(sdf_final, function(cdf) as.numeric(pos_names.read_table(cdf)[1]))
+  sdf_final <- sdf_final[order(first_pos)]
 
   loci <- lapply(sdf_final, function(cdf) {
     as.numeric(names(dplyr::select(cdf, -count)))
@@ -323,6 +334,47 @@ solutions_to_haplotypes.pipeline <- function(out_dir)
   return (H_file)
 }
 
+#' Given RegressHaplo haplotypes file, produce fasta file showing
+#' haplotypes over the full reference with frequencies as part of
+#' sequence names
+#'
+#' @param bam_file bam file containing reads for haplotype reconstruction
+#' @param out_dir output directory for haplotype file and assumed
+#' directory of solutions file
+#'
+#' @return path to fasta file
+#' @export
+haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
+{
+  haplo <- get_haplo.pipeline(out_dir)
+  haplo_m <- get_hap.Haplo(haplo)
+  pi <- get_freq.Haplo(haplo)
+  nhaps <- length(pi)
+
+  variable_pos <- get_variable_positions.pipeline(out_dir)
+  colnames(haplo_m) <- variable_pos
+
+  pu <- BAM_pileup(bam_file, max_depth=2000)
+  consensus <- consensus(pu)
+  all_pos <- 1:nrow(pu)
+
+  out_haps <- sapply(all_pos, function(i) {
+    if (is.element(i, variable_pos))
+      return (haplo_m[,as.character(i)])
+    else
+      return (rep(consensus[i], nhaps))
+  })
+  hap_s <- apply(out_haps, 1, paste, collapse="")
+  dna <- DNAStringSet(hap_s)
+  names(dna) <- paste("haplotype", 1:nhaps, "_", round(10^4*pi)/10^4, sep="")
+
+  out_dir <- fix_out_dir(out_dir)
+  fasta_file <- paste(out_dir, "final_haplo.fasta", sep="")
+  writeXStringSet(dna, fasta_file)
+
+  return (fasta_file)
+}
+
 #' Execute full RegressHaplo pipeline
 #' @param bam_file bam file
 #' @param out_dir output directory
@@ -336,13 +388,15 @@ full_pipeline <- function(bam_file, out_dir,
                           sig=.01, num_trials=100, heavy_tail=T)
 {
   bam_to_variant_calls.pipeline(bam_file, out_dir, sig=sig, heavy_tail=heavy_tail)
-  bam_to_read_table.pipeline(bam_file, out_dir)
+  bam_to_read_table.pipeline(bam_file, out_dir, sig=sig)
   read_table_to_loci.pipeline(out_dir, min_cover=500, max_num_haplotypes=1200)
   loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=1200)
   haplotypes_to_parameters.pipeline(out_dir)
   parameters_to_solutions.pipeline(out_dir, num_trials=num_trials,
                                                rho_vals=rho_vals)
   solutions_to_haplotypes.pipeline(out_dir)
+  haplotypes_to_fasta.pipeline(out_dir)
+  haplotypes_to_fasta.pipeline(bam_file, out_dir)
 
   return (NULL)
 }
@@ -370,7 +424,16 @@ get_read_table.pipeline <- function(out_dir, raw=F)
   else
     read_table_file <- paste(out_dir, "read_table.csv", sep="")
 
+  # read once to find out how many columns.  This needs to be done because
+  # read.table is interpreting "T" and "TRUE" in cases when the column is all
+  # "T"
+  df_h <- read.table(read_table_file, header=T, sep=",", check.names = F,
+                     nrow=1,
+                   stringsAsFactors = F)
+  colcl <- c("integer", rep("character", ncol(df_h)-1))
+
   df <- read.table(read_table_file, header=T, sep=",", check.names = F,
+                   colClasses = colcl,
                    stringsAsFactors = F)
   return (df)
 }
@@ -461,6 +524,14 @@ get_haplo.pipeline <- function(out_dir)
 
   H <- read.Haplo(hfile)
   return (H)
+}
+
+get_variable_positions.pipeline <- function(out_dir)
+{
+  h <- get_h.pipeline(out_dir)
+  pos <- as.numeric(colnames(h))
+
+  return (pos)
 }
 
 

@@ -1104,7 +1104,6 @@ clean.read_table <- function(df, min_count=10,
 #' removed
 error_filter.read_table <- function(df, error_freq, sig)
 {
-  # empty line in data.fram 1926
    temp <- templates.read_table(df)
    ntemp <- length(temp)
 
@@ -1121,6 +1120,9 @@ error_filter.read_table <- function(df, error_freq, sig)
 
      if (total < 100)
        return (NULL)
+     # if sig==0, then no errors and include all reads
+     if (sig==0)
+       return (ind)
 
      mu <- total*error_freq
      # do we reject a single read group
