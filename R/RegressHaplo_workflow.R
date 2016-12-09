@@ -37,7 +37,7 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 
   # if sig==0, no error correction
   if (sig==0)
-    vc <- variant_calls(pu, min_freq=1E-5)
+    vc <- variant_calls(pu, min_freq=1E-4)
   else
     vc <- variant_calls(pu, sig=bf_sig, heavy_tail=heavy_tail)
 
@@ -80,7 +80,7 @@ bam_to_read_table.pipeline <- function(bam_file,
   # clean up read table to eliminate empty rows
   df <- clean.read_table(df, min_count=0,
                          remove_outside_reads=T,
-                         remove_empty_cols=F,
+                         remove_empty_cols=T,
                          remove_non_variant_pos = F,
                          remove_deletions = F,
                          remove_partial_cover_reads = F)
@@ -91,6 +91,13 @@ bam_to_read_table.pipeline <- function(bam_file,
                               min_mapq=0)
   error_rate <- VSeqTools::get_error_rate(pu, split_by_nuc=F)
   df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
+
+  df_filter <- clean.read_table(df_filter, min_count=0,
+                         remove_outside_reads=T,
+                         remove_empty_cols=T,
+                         remove_non_variant_pos = F,
+                         remove_deletions = F,
+                         remove_partial_cover_reads = F)
 
   read_table_file <- paste(out_dir, "read_table.csv", sep="")
   write.table(df_filter, read_table_file, sep=",", row.names=F)
@@ -106,8 +113,9 @@ bam_to_read_table.pipeline <- function(bam_file,
 #' @details The read table is assumed to be in out_dir with filename read_table.csv.
 #' @return NULL
 #' @export
-read_table_to_loci.pipeline <- function(out_dir, min_cover=500,
-                                        max_num_haplotypes=1200)
+read_table_to_loci.pipeline <- function(out_dir,
+                                        max_num_haplotypes=1200,
+                                        min_cover=500)
 {
   df <- get_read_table.pipeline(out_dir)
 
@@ -201,8 +209,9 @@ loci_to_haplotypes.pipeline <- function(out_dir,
       center_rho <- (left_rho + right_rho)/2
       center_n <- number_global_haplotypes.RegressHaplo(center_rho, ldf, max_num_haplotypes)
       ratio <- center_n/max_num_haplotypes
+      cat("left_n right_n center_rho", left_n, right_n, center_rho, "\n")
+
       if (ratio >= .8 & ratio <= 1) {
-        local_rho <- center_rho
         break
       } else if (center_n > max_num_haplotypes) {
         left_rho <- center_rho
@@ -212,13 +221,20 @@ loci_to_haplotypes.pipeline <- function(out_dir,
         right_rho <- center_rho
         right_n <- center_n
       }
-      cat("left_n right_n", left_n, right_n, "\n")
+
 
       counter <- counter + 1
       if (counter == 20)
         break
     }
+    # if we exited due to counter, choose rho as right_rho
+    # to fall below the max_num_haplotypes target
+    if (counter==20)
+      local_rho <- right_rho
+    else
+      local_rho <- center_rho
   }
+
 
   # use local rho to find haplotypes
   h_local <- Map(function(cdf, i) {
@@ -384,18 +400,18 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
 #'
 #' @export
 full_pipeline <- function(bam_file, out_dir,
+                          max_num_haplotypes=1200,
                           rho_vals=c(.1,1,5,10),
                           sig=.01, num_trials=100, heavy_tail=T)
 {
   bam_to_variant_calls.pipeline(bam_file, out_dir, sig=sig, heavy_tail=heavy_tail)
   bam_to_read_table.pipeline(bam_file, out_dir, sig=sig)
-  read_table_to_loci.pipeline(out_dir, min_cover=500, max_num_haplotypes=1200)
-  loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=1200)
+  read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes, min_cover=500)
+  loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes)
   haplotypes_to_parameters.pipeline(out_dir)
   parameters_to_solutions.pipeline(out_dir, num_trials=num_trials,
                                                rho_vals=rho_vals)
   solutions_to_haplotypes.pipeline(out_dir)
-  haplotypes_to_fasta.pipeline(out_dir)
   haplotypes_to_fasta.pipeline(bam_file, out_dir)
 
   return (NULL)
@@ -517,6 +533,16 @@ get_solutions.pipeline <- function(out_dir)
 }
 
 #' @export
+get_solutions_summary.pipeline <- function(out_dir)
+{
+  s <- get_solutions.pipeline(out_dir)
+  h <- get_h.pipeline(out_dir)
+
+  rhs <- RegressHaploSolutions(s, h)
+  return (rhs)
+}
+
+#' @export
 get_haplo.pipeline <- function(out_dir)
 {
   out_dir <- fix_out_dir(out_dir)
@@ -524,6 +550,19 @@ get_haplo.pipeline <- function(out_dir)
 
   H <- read.Haplo(hfile)
   return (H)
+}
+
+get_fasta.pipeline <- function(out_dir)
+{
+  out_dir <- fix_out_dir(out_dir)
+  hfile <- paste(out_dir, "final_haplo.fasta", sep="")
+
+  dna <- readDNAStringSet(hfile)
+  freq_names <- names(dna)
+  freq <- sapply(freq_names, function(s) strsplit(s, split="_")[[1]][2])
+  freq <- as.numeric(freq)
+
+  return (list(haplotypes=as.character(dna), freq=freq))
 }
 
 get_variable_positions.pipeline <- function(out_dir)

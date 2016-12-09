@@ -537,6 +537,11 @@ seq.read_table <- function(df)
 #' @export
 adjacency_matrix.read_table <- function(df, sparse=T)
 {
+  # if there are too many rows, computation should not be done because
+  # it will be slow and cause a memory problem
+  if (nrow(df) > 200)
+    return (NULL)
+
   dfs <- split_paired_ends.read_table(df)
   if (nrow(dfs$pairs) != 0) {
     s <- paste("adjacency matrix cannot be constructed for paired reads with gap.",
@@ -564,24 +569,9 @@ adjacency_matrix.read_table <- function(df, sparse=T)
     for (j_sp in (i_sp+1):nseq) {
       # use start pos order, so we know
       # read i start pos <= read j start pos
+
       i <- sp_order[i_sp]; j <- sp_order[j_sp];
       shared_pos <- intersect(pos[[i]], pos[[j]])
-
-      # this code segment removes dangling paths (not starting at root),
-      # by connecting reads that don't overlap but are contiguous,
-      # but it greatly raises the number of consistent paths.  dangling
-      # paths are likely low count paths, since otherwise there would be
-      # an overlap.   consider putting this code in if we are able to
-      # raise speed
-#       if (length(shared_pos)==0) {
-#         i_start_ind <- which(all_pos==end_pos[i])
-#         j_end_ind <- which(all_pos==start_pos[j])
-#
-#         if (i_start_ind==(j_end_ind-1))
-#           m[i,j] <- 1
-#         else
-#           next
-#       }
 
       if (length(shared_pos)==0)
         next
@@ -902,6 +892,10 @@ consistent_haplotypes_single_end.read_table <- function(df, rm.na=F,
                                                         max_num_haplotypes=20000)
 {
   m <- adjacency_matrix.read_table(df, sparse=T)
+  # if df is too large m will not be computed
+  if (is.null(m))
+    return (NULL)
+
   z <- paths_exceed_limit.read_table(m, max_num_haplotypes)
   cat("number of paths in locus", z, "\n")
 
@@ -1204,10 +1198,11 @@ split_unlinked_loci.read_table <- function(df, sort_loci=T, min_cover=1000)
     strsplit(cpos, split=",")[[1]])
 
   df_unlinked <- lapply(linked_pos, function(lp) {
-    cdf <- df[,c("count", lp)]
-    cdf <- clean.read_table(cdf, min_count=0,
+    cdf_in <- df[,c("count", lp)]
+    cdf <- clean.read_table(cdf_in, min_count=0,
                             remove_non_variant_pos = F,
                             remove_deletions = F)
+    return (cdf)
   })
 
   if (sort_loci) {

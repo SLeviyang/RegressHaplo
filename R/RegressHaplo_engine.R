@@ -58,7 +58,7 @@ gradient_norm.engine <- function(pi, grad, cutoff)
 
   grad_other_error <- abs(grad_other)
 
-  error <- max(grad_boundary_error, grad_other_error)
+  error <- max(grad_boundary_error, grad_other_error, 0)
   return (error)
 }
 
