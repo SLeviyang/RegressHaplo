@@ -1,10 +1,16 @@
 #' Haplo object construct
 #'
-#' A Haplo object contains a collection of haplotypes, their frequency, and total count
+#' A Haplo object contains a collection of haplotypes,
+#' their frequency, and total count
 #'
 #' @param h A haplotype matrix (matrix of characters with rows giving haplotypes)
 #' @param pi A numeric vector giving frequencies of haplotypes
 #' @param count The total coverage, may be NA if this is not well-defined
+#'
+#' @details A Haplo object is a list with elements h, pi, count, h_seq.
+#' h is a character matrix with rows giving haplotypes, pi is a numeric
+#' vector of frequencies, count is not currently used and h_seq is
+#' a characer vector of haplotypes (rows of h pasted).
 #'
 #' @return A Haplo object
 #' @export
@@ -32,31 +38,37 @@ Haplo <- function(h, pi, count=NA)
   return (H)
 }
 
+#' @export
 get_hap.Haplo <- function(H)
 {
   return (H$h)
 }
 
+#' @export
 get_nhap.Haplo <- function(H)
 {
   return (nrow(get_hap.Haplo(H)))
 }
 
+#' @export
 get_hap_seq.Haplo <- function(H)
 {
   return (H$h_seq)
 }
 
+#' @export
 get_freq.Haplo <- function(H)
 {
   return (H$pi)
 }
 
+#' @export
 get_count.Haplo <- function(H)
 {
   return (H$count)
 }
 
+#' @export
 get_nhap.Haplo <- function(H)
 {
   return (length(H$pi))
@@ -88,6 +100,24 @@ plot.Haplo <- function(H, p=NULL, facet_label=NULL)
   HL <- HaploLocus(H, pos)
 
   return (plot.HaploLocus(HL, p, facet_label))
+}
+
+#' Returns Haplo object with identical haplotype frequencies merged.
+unique.Haplo <- function(H)
+{
+  hseq <- get_hap_seq.Haplo(H)
+  h <- get_hap.Haplo(H)
+  pi <- get_freq.Haplo(H)
+
+  hseq_u <- unique(hseq)
+  inds <- lapply(hseq_u, function(hh) which(hh==hseq))
+
+  pi_u <- sapply(inds, function(cinds) sum(pi[cinds]))
+  h_u <- lapply(inds, function(cinds) h[cinds[1],,drop=F])
+  h_u <- do.call(rbind, h_u)
+
+  H_u <- Haplo(h_u, pi_u)
+  return (H_u)
 }
 
 write.Haplo <- function(H, outfile)
