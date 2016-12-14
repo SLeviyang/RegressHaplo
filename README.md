@@ -21,8 +21,8 @@ Each component of the pipeline generates output files that are used by the follo
 
 **Pipeline Components**:
 
-1.  `bam_to_variant_calls.pipeline(bam_file, out_dir, sig=.01)` 
-2. `bam_to_read_table.pipeline(bam_file, out_dir)`
+1.  `bam_to_variant_calls.pipeline(bam_file, out_dir, start_pos=NULL, end_pos=NULL, sig=.01)` 
+2. `variant_calls_to_read_table.pipeline(bam_file, out_dir)`
 3. `read_table_to_loci.pipeline(out_dir, max_num_haplotypes=1200)`
 4. `loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=1200)`
 5. `haplotypes_to_parameters.pipeline(out_dir)`
@@ -34,6 +34,7 @@ Each component of the pipeline generates output files that are used by the follo
 
 * `bam_file` - A BAM file of the NGS dataset.  The reference is not needed by RegressHaplo. 
 * `out_dir` - directory in which output and input datafiles are written and read.
+* `start_pos, end_pos` - positions on reference over which to make variant calls.  If NULL, then the whole reference is considered.
 * `max_num_haplotypes` - maximum number of haplotypes to consider in a locus and globally.  The default of 1200 represents a ceiling, beyond that and the computations slow down considerably.  Lowering the maximum number of haplotypes will speed up the reconstruction but potentially reduce accuracy.
 * `rho_values` - which rho values to use in constructing solutions for the penalized regression.  For each rho value, the regression is solved `num_trials` time using different starting points.
 * `sig` - significance level at which to call variants.  A Bonferonni correction is automatically applied to the significance level accounting for multiplicity of positions.  **To turn off error correction, set sig=0**

@@ -4,6 +4,9 @@
 #' @param bam_file path to bam file
 #' @param out_dir output directory, will be created if needed.  variant call file
 #' will be placed in the output directory
+#' @param start_pos position on reference at which to start looking for variant
+#' calls
+#' @param end_pos position on reference at which to end looking for variant calls
 #' @param sig significance level at which variants will be called.  An automatic
 #' bonferroni correction is applied to account for the number of positions in the
 #' reference.
@@ -25,6 +28,7 @@
 #' with TRUE meaning that a true variant exists with the corresponding nucleotide.
 #' @export
 bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
+                                          start_pos=NULL, end_pos=NULL,
                                           sig=.01, heavy_tail=T)
 {
   out_dir <- fix_out_dir(out_dir)
@@ -42,6 +46,10 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
     vc <- variant_calls(pu, sig=bf_sig, heavy_tail=heavy_tail)
 
   vc_pos <- get_variant_call_pos(vc)
+  if (!is.null(start_pos))
+    vc_pos <- vc_pos[vc_pos >= start_pos]
+  if (!is.null(end_pos))
+    vc_pos <- vc_pos[vc_pos <= end_pos]
 
   vc <- vc[vc_pos,]
   names(vc) <- c("pos", "A", "C", "G", "T", "-", "i")
@@ -53,7 +61,7 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 }
 
 
-#' Given a bam file, create a read table
+#' Given variant calls and a bam file, create a read table
 #' @param bam_file path to bam file
 #' @param out_dir output directory, will be created if needed
 #' @param sig significance levels at which to filter reads.
@@ -65,7 +73,7 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 #'
 #' @return path to read table file
 #' @export
-bam_to_read_table.pipeline <- function(bam_file,
+variant_calls_to_read_table.pipeline <- function(bam_file,
                                        out_dir,
                                        sig=.01)
 {
@@ -402,10 +410,13 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
 full_pipeline <- function(bam_file, out_dir,
                           max_num_haplotypes=1200,
                           rho_vals=c(.1,1,5,10),
+                          start_pos=NULL, end_pos=NULL,
                           sig=.01, num_trials=100, heavy_tail=T)
 {
-  bam_to_variant_calls.pipeline(bam_file, out_dir, sig=sig, heavy_tail=heavy_tail)
-  bam_to_read_table.pipeline(bam_file, out_dir, sig=sig)
+  bam_to_variant_calls.pipeline(bam_file, out_dir,
+                                start_pos=NULL, end_pos=NULL,
+                                sig=sig, heavy_tail=heavy_tail)
+  variant_calls_to_read_table.pipeline(bam_file, out_dir, sig=sig)
   read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes, min_cover=500)
   loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes)
   haplotypes_to_parameters.pipeline(out_dir)

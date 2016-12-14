@@ -134,11 +134,13 @@ best_K.RegressHaploSolutions <- function(rhs)
   nk <- nrow(df_K)
   # find ratio to best fit
   best_fit <- min(df_K$fit, na.rm=T)
-  improvement <- df_K$fit/best_fit
+  worst_fit <- max(df_K$fit, na.rm=T)
+
+  improvement <- (df_K$fit-best_fit)/(worst_fit - best_fit)
   df_K <- mutate(df_K, improvement=improvement)
 
-  # find the first index at which improvement < 1.1
-  best_ind <- min(which(improvement < 1.1))
+  # find the first index at which improvement < .1
+  best_ind <- min(which(improvement < .1))
   best_K <- df_K$K[best_ind]
 
   return (best_K)
