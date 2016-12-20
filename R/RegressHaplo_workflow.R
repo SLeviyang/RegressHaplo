@@ -414,7 +414,7 @@ full_pipeline <- function(bam_file, out_dir,
                           sig=.01, num_trials=100, heavy_tail=T)
 {
   bam_to_variant_calls.pipeline(bam_file, out_dir,
-                                start_pos=NULL, end_pos=NULL,
+                                start_pos=start_pos, end_pos=end_pos,
                                 sig=sig, heavy_tail=heavy_tail)
   variant_calls_to_read_table.pipeline(bam_file, out_dir, sig=sig)
   read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes, min_cover=500)
