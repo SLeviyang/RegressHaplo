@@ -34,6 +34,16 @@ readFit <- function(df, h, pi=NULL, position=F)
   return (rf)
 }
 
+#' Build a readFit object base on reads
+read_fit.readFit <- function(df, h, pi=NULL)
+{
+  # get all templates from read table
+  template_m <- templates.read_table(df)
+  out <- template_fit.readFit(template_m, df, h, pi=pi)
+
+  return (out)
+}
+
 
 #' Return a readFit object base on nucleotide positions
 position_fit.readFit <- function(df, h, pi=NULL)
@@ -54,15 +64,6 @@ position_fit.readFit <- function(df, h, pi=NULL)
   return (out)
 }
 
-#' Build a readFit object base on reads
-read_fit.readFit <- function(df, h, pi=NULL)
-{
-  # get all templates from read table
-  template_m <- templates.read_table(df)
-  out <- template_fit.readFit(template_m, df, h, pi=pi)
-
-  return (out)
-}
 
 #' Build a readFit object base on templates.  This is a
 #' generic function used to build readFit objects for
@@ -87,7 +88,8 @@ template_fit.readFit <- function(template_m, df, h, pi=NULL)
     # prepare nucs to be passed to haplotype_match
     nucs <- sapply(1:nalleles, function(i) {
       cnucs <- rep("+", npos)
-      cnucs[ctemplate] <- strsplit(alleles[i], split="")[[1]]
+      cnucs[ctemplate] <- split_allele.readFit(alleles[i])
+      #cnucs[ctemplate] <- strsplit(alleles[i], split="")[[1]]
       return (cnucs)
     })
     if (class(nucs) != "matrix")
@@ -109,6 +111,55 @@ template_fit.readFit <- function(template_m, df, h, pi=NULL)
   })
 
   return (info)
+}
+
+#' Split alleles while accounting for insertions
+#'
+#' @param character string
+#'
+#' @details insertions in read tables are stored as, eg., <TTA>.
+#' Alleles for a template formed by pasting, eg, TAT<TTA>CAC.
+#' To recover the read position values we need to split the allele
+#' to return T,A,T,<TTA>,C,A,C
+#'
+#' @return a character.vector
+split_allele.readFit <- function(allele)
+{
+  start_ins <- as.numeric(gregexpr("<", allele)[[1]])
+  if (start_ins[1]==-1)
+    return (strsplit(allele, split="")[[1]])
+  end_ins <- as.numeric(gregexpr(">", allele)[[1]])
+
+  if (length(start_ins) != length(end_ins))
+    stop("bad allele")
+
+  insertions <- mapply(function(s, e) substr(allele, s, e),
+                       start_ins, end_ins)
+  insertion_length <- sum(nchar(insertions))
+  nc <- nchar(allele)
+  nuc_length <- nc - insertion_length
+
+  allele_final <- rep(as.character(NA), nuc_length+length(insertions))
+  allele_split <- strsplit(allele, split="")[[1]]
+
+  allele_split_index <- 1
+  insertion_index <- 1
+  allele_final_index <- 1
+  while(allele_split_index <= nc) {
+    if (allele_split[allele_split_index] == "<") {
+      allele_final[allele_final_index] <- insertions[insertion_index]
+      allele_split_index <- end_ins[insertion_index] + 1
+      insertion_index <- insertion_index + 1
+      allele_final_index <- allele_final_index + 1
+    }
+    else {
+      allele_final[allele_final_index] <- allele_split[allele_split_index]
+      allele_final_index <- allele_final_index + 1
+      allele_split_index <- allele_split_index + 1
+    }
+  }
+
+  return (allele_final)
 }
 
 #' Determine haplotypes that match a nucleotide pattern

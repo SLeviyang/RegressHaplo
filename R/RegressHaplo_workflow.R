@@ -285,12 +285,12 @@ loci_to_haplotypes.pipeline <- function(out_dir,
 #' @details The read table is assumed to be in out_dir with filename read_table.csv.
 #' @return NULL
 #' @export
-haplotypes_to_parameters.pipeline <- function(out_dir)
+haplotypes_to_parameters.pipeline <- function(out_dir, position_fit=F)
 {
   df <- get_read_table.pipeline(out_dir)
   h <- get_h.pipeline(out_dir)
 
-  par <- penalized_regression_parameters.RegressHaplo(df, h)
+  par <- penalized_regression_parameters.RegressHaplo(df, h, position_fit=position_fit)
 
   y <- matrix(par$y, ncol=1)
   P <- par$P
@@ -543,15 +543,6 @@ get_solutions.pipeline <- function(out_dir)
   return (sol_m)
 }
 
-#' @export
-get_solutions_summary.pipeline <- function(out_dir)
-{
-  s <- get_solutions.pipeline(out_dir)
-  h <- get_h.pipeline(out_dir)
-
-  rhs <- RegressHaploSolutions(s, h)
-  return (rhs)
-}
 
 #' @export
 get_haplo.pipeline <- function(out_dir)
@@ -563,6 +554,7 @@ get_haplo.pipeline <- function(out_dir)
   return (H)
 }
 
+#' @export
 get_fasta.pipeline <- function(out_dir)
 {
   out_dir <- fix_out_dir(out_dir)
@@ -576,6 +568,7 @@ get_fasta.pipeline <- function(out_dir)
   return (list(haplotypes=as.character(dna), freq=freq))
 }
 
+#' @export
 get_variable_positions.pipeline <- function(out_dir)
 {
   h <- get_h.pipeline(out_dir)
@@ -593,4 +586,56 @@ fix_out_dir <- function(out_dir)
     out_dir <- paste(out_dir, "/", sep="")
 
   return (out_dir)
+}
+
+
+############################################################
+# methods to manipulate solutions file
+
+#' Summary of regression fits over all starting points
+#'
+#' @param out_dir RegressHaplo pipeline directory
+#'
+#' @return A data.frame with columns (rho) rho value for fitting,
+#' (K) number of haplotypes reconstruted, (kk) technical parameter,
+#' (fit) fit of haplotype reconstruction, (solution_number).  Each
+#' row of the data.frame corresponds to a solution of the optimization
+#' for a given starting point and rho value.
+#' @export
+get_solutions_summary.pipeline <- function(out_dir)
+{
+  s <- get_solutions.pipeline(out_dir)
+  h <- get_h.pipeline(out_dir)
+
+  rhs <- RegressHaploSolutions(s, h)
+  return (rhs$df_stats)
+}
+
+#' Haplotype reconstruction of given solution
+#'
+#' @param out_dir, RegressHaplo pipeline directory
+#' @param i solution number
+#'
+#' @return a data.frame with columns (haplotype) haplotypes reconstructed, (freq)
+#' frequencies of haplotype, and the haplotype number from the list of global
+#' haplotypes in h.csv (haplotype_number)
+#' @export
+get_solutions_haplotype_reconstruction.pipeline <- function(out_dir, i)
+{
+  s <- get_solutions.pipeline(out_dir)
+  h <- get_h.pipeline(out_dir)
+
+  if (ncol(s) < i) {
+    cat("you are asking for solution", i, "but only", ncol(s), "solutions exist", "\n")
+    stop("stopping!")
+  }
+
+  freqs <- s[5:nrow(s),i]
+  hap_ind <- which(freqs > 0)
+  hap <- apply(h[hap_ind,,drop=F], 1, paste, collapse="")
+
+  df <- data.frame(haplotype=hap, freq=freqs[hap_ind],
+                   haplotype_number=hap_ind, stringsAsFactors = F)
+
+  return (df)
 }

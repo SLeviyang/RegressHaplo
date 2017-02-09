@@ -140,7 +140,7 @@ best_K.RegressHaploSolutions <- function(rhs)
   df_K <- mutate(df_K, improvement=improvement)
 
   # find the first index at which improvement < .1
-  best_ind <- min(which(improvement < .1))
+  best_ind <- min(which(improvement < .4))
   best_K <- df_K$K[best_ind]
 
   return (best_K)
@@ -174,48 +174,3 @@ best_fit.RegressHaploSolutions <- function(ir, K_val=NULL)
   return (list(H=H, fit=fit, solution=optim_solution_num))
 }
 
-# #' type is "map", "fit_position", "fit_read"
-# plot_best_fit.IgorResults <- function(ir, K_val,
-#                                       type="map",
-#                                       plotToFile=F)
-# {
-#   optim <- best_fit.IgorResults(ir, K_val)
-#   h <- optim$h
-#   pi <- optim$pi
-#   fit <- optim$fit
-#
-#   df <- get_read_df.IgorResults(ir)
-#   paired_end <- get_paired_end.IgorResults(ir)
-#   animal <- get_animal.IgorResults(ir)
-#   week <- get_week.IgorResults(ir)
-#
-#   if (type=="map") {
-#     rm <- readMap(df, h, pi)
-#     p <- plot.readMap(rm, df=df, animal=animal, paired_end=paired_end)
-#   }
-#   else if (type == "fit_position") {
-#     rf_position <- readFit(df, h, pi, position=T)
-#     p <- plot.readFit(rf_position)
-#   }
-#   else {
-#     rf_read <- readFit(df, h, pi, position=F)
-#     p <- plot.readFit(rf_read)
-#   }
-#
-#   p <- p + ggtitle(paste(animal, week, fit, sep=" "))
-#
-#   results_dir <- get_results_dir.IgorResults(animal, week)
-#   outfile <- paste(results_dir, "best_fit_K=", K_val,
-#                    "_", type, ".jpeg", sep="")
-#
-#   if (plotToFile) {
-#     jpeg(outfile, width=1500, height=1000)
-#     print(p)
-#     dev.off()
-#
-#     return (fit)
-#   }
-#   else
-#     return (p)
-# }
-#

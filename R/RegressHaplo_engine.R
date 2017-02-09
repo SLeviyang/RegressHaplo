@@ -3,7 +3,9 @@
 grad_AL.engine <- function(QQ, Py_more, pi)
 {
   ind <- which(pi > 0)
-  return (QQ[,ind,drop=F] %*% pi[ind] + Py_more)
+  x <- QQ[,ind,drop=F] %*% pi[ind] + Py_more
+
+  return (x)
 }
 
 
@@ -112,6 +114,7 @@ optimize.engine <- function(y, P, rho, pi, mu, kk,
   # matrices for quick computation that do change
   QQ <- PPandM + kk*col1col1
   Py_more <- Py - (mu + kk)*col1
+
   # gradient = QQ %*% pi - 2*t(P) %*% y - (mu + kk)col1 = QQ %*% pi + Py_more
   # Hessian = QQ
 
@@ -121,14 +124,9 @@ optimize.engine <- function(y, P, rho, pi, mu, kk,
   total_error <- max(abs(constraint_value.engine(pi)),
                      gradient_norm.engine(pi, grad, glaveps))
 
-  # debug
-#  total_counter <- 1
-#  f <- c()
-#  c_err <- c()
-#  pi_dim <- c()
 
   # OUTER LOOP, RAISES PENALTY AND RECALCULATES LAGRANGE MULTIPLIES
-  while(total_error > glaveps & outer_loop_counter < 1000) {
+  while(total_error > glaveps & outer_loop_counter < 200) {
     outer_loop_counter <- outer_loop_counter + 1
     t <- 1
     L <- 1.25*max_Hessian_eigenvalue.engine(QQ)

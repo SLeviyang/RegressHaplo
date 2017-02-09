@@ -305,13 +305,13 @@ haplotype_permute.RegressHaplo <- function(h_list)
 #' @return the matrix P and the vector y as a list.  M is implicit
 #' and so not computed.
 #' @export
-penalized_regression_parameters.RegressHaplo <- function(df, h)
+penalized_regression_parameters.RegressHaplo <- function(df, h, position_fit=F)
 {
   # get position nucleotide counts
   #nucs_mat <- nucs_at_pos.read_table(df)
   K <- nrow(h)
 
-  rf <- read_fit.readFit(df, h, pi=NULL)
+  rf <- readFit(df, h, pi=NULL, position=position_fit)
 
   P_list <- lapply(rf, function(crf) crf$P)
   y_list <- lapply(rf, function(crf) crf$sampled_freq)
