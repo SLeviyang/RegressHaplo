@@ -37,7 +37,6 @@
 #' are NA if the optimization is not run, otherwhise pi is a vector
 #' of frequencies with length equal to the number of haplotypes (nrow(h))
 #' and fit is a scalar describing the fit of the solution.
-#' @export
 filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
                                  max_global_dim=10000,
                                  max_local_dim=1200,
@@ -124,7 +123,6 @@ filter_and_optimize.RegressHaplo <- function(df, global_rho=NULL,
 #' are NA if the optimization is not run, otherwhise pi is a vector
 #' of frequencies with length equal to the number of haplotypes (nrow(h))
 #' and fit is a scalar describing the fit of the solution.
-#' @export
 nofilter_and_optimize.RegressHaplo <- function(df, rho,
                               max_dim=1200,
                               min_cover=500)

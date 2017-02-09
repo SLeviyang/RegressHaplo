@@ -96,22 +96,6 @@ get_solutions.RegressHaploSolutions <- function(ir)
 }
 
 ##########################################################
-plot_fits_vs_K.RegressHaploSolutions <- function(sr, minK=NULL)
-{
-  df_stat <- get_stats_df.RegressHaploSolutions(sr)
-  if (!is.null(minK))
-    df_stat <- filter(df_stat, K >= minK)
-  plot(df_stat$K, df_stat$fit, xlab="K", ylab="fit")
-  return (NULL)
-}
-
-plot_fits_vs_rho.RegressHaploSolutions <- function(sr)
-{
-  df_stat <- get_stats_df.RegressHaploSolutions(sr)
-  plot(df_stat$rho, df_stat$fit, xlab="rho", ylab="fit")
-  return (NULL)
-}
-
 #' Determines the best fit solution
 #'
 #' @param rhs A RegressHaploSolutions object
@@ -139,8 +123,8 @@ best_K.RegressHaploSolutions <- function(rhs)
   improvement <- (df_K$fit-best_fit)/(worst_fit - best_fit)
   df_K <- mutate(df_K, improvement=improvement)
 
-  # find the first index at which improvement < .1
-  best_ind <- min(which(improvement < .4))
+  # find the first index at which fit is in the 70%
+  best_ind <- min(which(improvement < .3))
   best_K <- df_K$K[best_ind]
 
   return (best_K)

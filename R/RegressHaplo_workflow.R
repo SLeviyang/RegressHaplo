@@ -179,7 +179,7 @@ read_table_to_loci.pipeline <- function(out_dir,
 #' @return NULL
 #' @export
 loci_to_haplotypes.pipeline <- function(out_dir,
-                                        max_num_haplotypes=1200)
+                                        max_num_haplotypes=1000)
 {
   df <- get_read_table.pipeline(out_dir)
   loci <- get_loci.pipeline(out_dir)
@@ -285,12 +285,12 @@ loci_to_haplotypes.pipeline <- function(out_dir,
 #' @details The read table is assumed to be in out_dir with filename read_table.csv.
 #' @return NULL
 #' @export
-haplotypes_to_parameters.pipeline <- function(out_dir, position_fit=F)
+haplotypes_to_parameters.pipeline <- function(out_dir)
 {
   df <- get_read_table.pipeline(out_dir)
   h <- get_h.pipeline(out_dir)
 
-  par <- penalized_regression_parameters.RegressHaplo(df, h, position_fit=position_fit)
+  par <- penalized_regression_parameters.RegressHaplo(df, h, position_fit=F)
 
   y <- matrix(par$y, ncol=1)
   P <- par$P
@@ -316,15 +316,35 @@ haplotypes_to_parameters.pipeline <- function(out_dir, position_fit=F)
 #' @details The parameter files assumed to exist are y.csv, P.csv, h.csv
 #' @return path to haplotype file
 #' @export
-parameters_to_solutions.pipeline <- function(out_dir, num_trials=100,
+parameters_to_solutions.pipeline <- function(out_dir, num_trials=700,
                                              rho_vals=c(.1,1,5,10,20))
 {
+  # if rho vals are null, try to find rho values that capture
+  # large ran and produce different fit values.
+  if (is.null(rho_vals)) {
+    rho_vals <- exp(seq(log(.001), log(10), length.out=50))
+    parameters_to_solutions.pipeline(out_dir, num_trials=1,
+                                     rho_vals = rho_vals)
+    m <- get_solutions.pipeline(out_dir)
+    fits <- round(10^5*m[1,])/10^5
+
+    df_rho <- data.frame(rho=rho_vals, fit=fits)
+    rho_final <- plyr::daply(df_rho, .(fits), function(cdf) {
+      mean(cdf$rho)
+    })
+
+  } else
+    rho_final <- rho_vals
+
+
+  num_trials_per_rho <- ceiling(num_trials/length(rho_final))
+
   y <- get_y.pipeline(out_dir)
   P <- get_P.pipeline(out_dir)
 
   solutions <- solutions.RegressHaplo(y, P,
-                                      num_trials=num_trials,
-                                      rho_vals=rho_vals,
+                                      num_trials=num_trials_per_rho,
+                                      rho_vals=rho_final,
                                       kk_vals=2)
 
   out_dir <- fix_out_dir(out_dir)
@@ -408,10 +428,10 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
 #'
 #' @export
 full_pipeline <- function(bam_file, out_dir,
-                          max_num_haplotypes=1200,
-                          rho_vals=c(.1,1,5,10),
+                          max_num_haplotypes=1000,
+                          rho_vals=NULL,
                           start_pos=NULL, end_pos=NULL,
-                          sig=.01, num_trials=100, heavy_tail=T)
+                          sig=.01, num_trials=700, heavy_tail=T)
 {
   bam_to_variant_calls.pipeline(bam_file, out_dir,
                                 start_pos=start_pos, end_pos=end_pos,
@@ -597,7 +617,7 @@ fix_out_dir <- function(out_dir)
 #' @param out_dir RegressHaplo pipeline directory
 #'
 #' @return A data.frame with columns (rho) rho value for fitting,
-#' (K) number of haplotypes reconstruted, (kk) technical parameter,
+#' (K) number of haplotypes reconstruted,
 #' (fit) fit of haplotype reconstruction, (solution_number).  Each
 #' row of the data.frame corresponds to a solution of the optimization
 #' for a given starting point and rho value.
@@ -608,7 +628,9 @@ get_solutions_summary.pipeline <- function(out_dir)
   h <- get_h.pipeline(out_dir)
 
   rhs <- RegressHaploSolutions(s, h)
-  return (rhs$df_stats)
+  df <- dplyr::select(rhs$df_stats, -kk)
+
+  return (df)
 }
 
 #' Haplotype reconstruction of given solution

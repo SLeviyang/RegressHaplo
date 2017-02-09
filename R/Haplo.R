@@ -94,13 +94,13 @@ set_pos_names.Haplo <- function(H, pos_names)
 }
 
 ###########################################################################
-plot.Haplo <- function(H, p=NULL, facet_label=NULL)
-{
-  pos <- rep(NA, get_nh.Haplo(H))
-  HL <- HaploLocus(H, pos)
-
-  return (plot.HaploLocus(HL, p, facet_label))
-}
+#plot.Haplo <- function(H, p=NULL, facet_label=NULL)
+#{
+#  pos <- rep(NA, get_nh.Haplo(H))
+#  HL <- HaploLocus(H, pos)
+#
+#  return (plot.HaploLocus(HL, p, facet_label))
+#}
 
 #' Returns Haplo object with identical haplotype frequencies merged.
 unique.Haplo <- function(H)

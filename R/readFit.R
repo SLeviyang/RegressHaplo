@@ -23,7 +23,6 @@
 #' with a given template.
 #'
 #' @return a readFit object
-#' @export
 readFit <- function(df, h, pi=NULL, position=F)
 {
   if (position)

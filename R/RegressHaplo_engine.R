@@ -1,5 +1,5 @@
 
-
+#' Compute gradient of augmented lagrangian
 grad_AL.engine <- function(QQ, Py_more, pi)
 {
   ind <- which(pi > 0)
@@ -126,15 +126,16 @@ optimize.engine <- function(y, P, rho, pi, mu, kk,
 
 
   # OUTER LOOP, RAISES PENALTY AND RECALCULATES LAGRANGE MULTIPLIES
-  while(total_error > glaveps & outer_loop_counter < 200) {
+  cat("RUNNING AUGMENTED LAGRANGIAN WITH ERROR TARGET", glaveps, "\n")
+  while(total_error > glaveps & outer_loop_counter < 500) {
     outer_loop_counter <- outer_loop_counter + 1
     t <- 1
     L <- 1.25*max_Hessian_eigenvalue.engine(QQ)
     inner_loop_counter <- 0
 
-    if (verbose)
-      cat("OUTER LOOP", outer_loop_counter, total_error,
-          constraint_value.engine(pi), "\n")
+    if (verbose & (outer_loop_counter %% 50 == 0))
+      cat("OUTER LOOP", outer_loop_counter, "ERROR:", total_error, "\n")
+     #     constraint_value.engine(pi), "\n")
 
     #debug
     #grad <- grad_AL.engine(QQ, Py_more, pi)
@@ -142,26 +143,14 @@ optimize.engine <- function(y, P, rho, pi, mu, kk,
     # INNER LOOP THAT OPTIMIZES AUG LAGRANGIAN IN pi
     repeat {
       inner_loop_counter <- inner_loop_counter + 1
-      #debug
-      #f[total_counter] <- AL.engine(y, P, M, rho, mu, kk, pi)
-      #c_err[total_counter] <- constraint_value.engine(pi)
-      #pi_dim[total_counter] <- length(pi)
-      #total_counter <- total_counter + 1
 
-      #  x = y - grad/L;
       pi_new <- pi - grad/L
-      # x = max(x,0);
       pi_new <- pi_new*(pi_new > 0)
-      #pi_new <- ifelse(pi_new > 0, pi_new, 0)
 
-      # nt = (1+sqrt(1+4*t^2))/2;
       nt <- (1 + sqrt(1 + 4*t^2))/2
 
-      #y = x + (x - xp)*(t-1)/nt;
       pi <- pi_new + (pi_new - pi_prev)*(t-1)/nt
-      #xp = x;
       pi_prev <- pi_new
-      #t = nt;
       t <- nt
 
 

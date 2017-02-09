@@ -63,8 +63,14 @@ For convenience, the following functions are defined to allow the user to access
 
 1. `get_variant_calls.pipeline(out_dir)` - returns the data.frame containing the variant calls; the data.frame is stored in `$out_dir/variant_calls.csv`
 2. `get_read_table.pipeline(out_dir, raw=F)` - returns a data.frame containing either the raw read table (contained in `$out_dir/raw_read_table.csv`) or the read table produced after filtering out errors (contained in `$out_dir/read_table.csv`)
-3. 'get_loci.pipeline(out_dir)' - returns a list of numeric vectors giving the positions, relative to the reference, composing each loci (accesses `$out_dir/loci.csv`)
+3. `get_loci.pipeline(out_dir)' - returns a list of numeric vectors giving the positions, relative to the reference, composing each loci (accesses `$out_dir/loci.csv`)
 4. `get_y.pipeline(out_dir), get_P.pipeline(out_dir)` - return a numeric vector, the y vector, and a numeric vector, the P matrix.  These functions access `y.csv` and `P.csv` respectively
-5. `get_solutions_summary(out_dir)` - returns a list containig elemetns `df_stats`, `m_p`, and  `h`.  `df_stats` is a data.frame with columns rho, K, fit.  Each row of `df_stats` corresponds to a single solution of the penalized regression with rho set to the specified value.  K gives the number of haplotypes in the solutions and fit gives the least squared errors of the K haplotypes.  `m_p` is a numeric matrix.  Each row is the h value solved for in a single solution of the penalized regression.  `h` is a matrix giving the global haplotypes.  Each row is a haplotype and each column gives a position.   The number of columns in `h` is the number of columns in `m_p`.   The number of rows in `df_stats` is the number of rows in `m_p`.  
+5. `get_solutions.pipeline(out_dir)` - returns matrix containing solution information.  This function is offered for completeness, analysis of solutions should be done through the solution analysis functions described below.
 6. `get_fasta.pipeline(out_dir)` - returns a list containing the elements haplotypes and freq.  haplotypes is a character.vector, each entry of which gives a full haplotype covering the reference.  freq is a numeric.vector giving the inferred frequency of each haplotype.
+
+**Solution Analysis Functions**:
+We provide functions to analyze the many solutions produced (saved in `solutions.csv`.   Analysis of solutions insures that a sufficient number of starting values have been tested and that overfitting, usually by too many haplotypes, is prevented.
+
+1. `get_solutions_summary.pipeline(out_dir)` - A data.frame with columns (rho) rho value for fitting,(K) number of haplotypes reconstruted, (kk) technical parameter, (fit) fit of haplotype reconstruction, (solution_number).  Each row of the data.frame corresponds to a solution of the optimization for a given starting point and rho value.
+2. `get_solutions_haplotype_reconstruction(out_dir)` - returns a data.frame with columns (haplotype) haplotypes reconstructed and (freq) frequencies of haplotype
 
