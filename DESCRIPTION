@@ -2,10 +2,10 @@ Package: RegressHaplo
 Type: Package
 Title: Haplotype Reconstruction Using Penalized Regression
 Version: 0.1
-Date: 2016-08-04
+Date: 2017-02-04
 Author: Sivan Leviyang
 Maintainer: Who to complain to <sr286@georgetown.edu>
-Description: More about what it does (maybe more than one line)
+Description: Uses a penalized regression to infer haplotypes using BAM file input.   Reasonable run-times depend on low diversity levels in the BAM reads.
 License: What license is it under?
 LazyData: TRUE
 Depends: igraph,

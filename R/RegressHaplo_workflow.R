@@ -422,9 +422,18 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
 #' Execute full RegressHaplo pipeline
 #' @param bam_file bam file
 #' @param out_dir output directory
-#' @param variant_calls.  A data.frame specifying positions and nucleotides on
-#' reference to be taken as true variants, see details.
-#' @param num_trials number of trials to run in order to find optimal solution
+#' @param max_num_haplotype The maximum number of haplotype over which the regression
+#' will be performed.  Lower values mean faster run times but poorer inference.
+#' Any number above 1200 will lead to very slow run times.
+#' @param rho_vals The values for rho, the penalty parameter, that will be used in
+#' the regression.  If NULL then RegressHaplo will choose values.
+#' @param start_pos Position on the reference at which the reconstruction begins.
+#' @param end_pos Position on the reference at which the reconstruction ends
+#' @param sig The significance level at which variants should be called.
+#' @param num_trials number of trials to run in order to find optimal solution.
+#' This number of trials is run for each rho value, unless rho=NULL, in which
+#' case this is the total number of trials.
+#' @param heavy_tail See comments in help of bam_to_variant_calls.pipeline
 #'
 #' @export
 full_pipeline <- function(bam_file, out_dir,
