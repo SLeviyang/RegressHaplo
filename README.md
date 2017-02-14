@@ -19,7 +19,7 @@ library(devtools)
 install_github("SLeviyang/RegressHaplo")
 ```
 
-RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, ggplot2, reshape2, Rsamtools, rmutil, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
+RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, Rsamtools, rmutil, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
 
 ```r
 source("https://bioconductor.org/biocLite.R")

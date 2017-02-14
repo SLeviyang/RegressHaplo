@@ -1,3 +1,5 @@
+
+# needs reshape2 and ggplot2
 ###########################################################
 # functions to analyze single position frequency errors
 
