@@ -5,12 +5,18 @@ Version: 0.1
 Date: 2017-02-04
 Author: Sivan Leviyang
 Maintainer: Who to complain to <sr286@georgetown.edu>
-Description: Uses a penalized regression to infer haplotypes using BAM file input.   Reasonable run-times depend on low diversity levels in the BAM reads.
+Description: Uses a penalized regression to infer haplotypes using BAM file
+    input. Reasonable run-times depend on low diversity levels in the BAM reads.
 License: What license is it under?
 LazyData: TRUE
-Depends: igraph,
+Depends:
+    igraph,
     plyr,
     dplyr,
     ggplot2,
     reshape2,
-    Biostrings
+    Biostrings,
+    Rsamtools,
+    rmutil,
+    GenomicAlignments
+RoxygenNote: 5.0.1

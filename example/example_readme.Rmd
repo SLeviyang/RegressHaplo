@@ -1,0 +1,76 @@
+---
+title: "RegressHaplo Example"
+author: "Sivan Leviyang"
+date: "February 12, 2017"
+output: pdf_document
+---
+The folder **data/** contains a BAM and associated index file for a paired-end NGS dataset.  The reads are synthetic, constructed using the ART simulation package. 
+
+## Running the Pipeline
+
+Make sure you load RegressHaplo
+```{r, echo=T, results='hide', message=F, warning=F}
+library(RegressHaplo)
+```
+then run the RegressHaplo pipeline on the BAM file.
+```{r, echo=T, results='hide', message=F, warning=F}
+bam_file <- "data/example.bam"
+out_dir <- "output/"
+full_pipeline(bam_file, out_dir, start_pos=500, end_pos=1500, num_trials=700)
+```
+We have chosen to restrict reconstruction to reference positions $500$ through $1500$ and to optimize the penalized regression $700$ times.  The haplotypes returned will cover the full consensus, composed of $2500$ positions, but positions outside the $500-1500$ region will be set to consensus values.   (Here we restrict to such a short region for the sake of an example with relatively short run time.)
+
+## Parsing RegressHaplo Results
+
+In this case, we directed RegressHaplo to place output files in the **output/** directory.  The final output file is **output/final\_haplo.fasta**.   The fasta file can be accessed directly; here we use Biostrings to read in and see the sequences.
+```{r}
+haps <- readDNAStringSet("output/final_haplo.fasta")
+haps
+```
+But RegressHaplo also provides several functions to view and analyze the reconstrution.
+
+```{r}
+# determine the positions on the reference that were considered variable 
+get_variable_positions.pipeline(out_dir)
+# get haplotype information
+info <- get_fasta.pipeline(out_dir)
+# info is a list containing the elements haplotypes and freq
+# freq gives the frequency of the reconstructed haplotypes
+info$freq
+# info$haplotype is a character vector containing the haplotypes.
+class(info$haplotypes)
+length(info$haplotypes)
+# we can use Biostrings to see the haplotypes since the sequences are rather long
+DNAStringSet(info$haplotypes)
+```
+
+## Evaluating Regression Performance
+
+After running RegressHaplo, check if the solutions have captured a range of haplotype reconstructions.   The solutions summary data.frame describes the results of the $700$ trials.  Each row in the data.frame corresponds to a single trial and provides K (the number of reconstructed haplotypes), fit (a fit measure, lower is better), and rho (the penalty parameter).  Typically many trials generate the same result -  meaning they find the same local minimum.
+```{r}
+df <- get_solutions_summary.pipeline(out_dir)
+# let's look at every 100th solution
+df[seq(from=100,to=700,by=100),]
+```
+Check that the different rho have produced a range of K values
+```{r}
+plot(df$rho, df$K, xlab="rho", ylab="K")
+```
+We have captured solutions with $K$ values (the number of haplotypes reconstructed) ranging from $3$ to $14$, although $K=6,10,11$ are missing.  This is a good spread of $K$ values; often a particular $K$ value will be missed.
+
+We can check the $rho$ values used
+```{r}
+unique(df$rho)
+```
+If further $K$ values are desired, additional rho values can be specified through the `full_pipeline` rho parameter, see help for specifics.  Increasing rho will lower $K$.
+
+We can also check whether the final solution chosen, $K=4$, reflects a good tradeoff between over and under fitting.
+```{r}
+#  K values vs fit
+plot(df$K, df$fit, xlab="K", ylab="fit")
+```
+
+Here $K=5$ would have produced a better fit, but $K=4$ seems reasonable.
+
+
+

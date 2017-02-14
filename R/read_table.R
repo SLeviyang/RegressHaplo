@@ -1,11 +1,8 @@
-
-
-
 #' Read table constructor
 #'
 #' Create a read table from a BAM file and variant calls
 #'
-#' @param bam_file
+#' @param bam_file bam file
 #' @param bai_file index file.  If missing then .bai appendix on bam_file is assumed.
 #' @param variant_calls.  A data.frame specifying positions and nucleotides on
 #' reference to be taken as true variants, see details.
@@ -225,14 +222,12 @@ paired_end_read_table <- function(ga_pair,
 #' Returns positions of read table as character vector
 #'
 #' @return A character vector
-#' @export
 pos_names.read_table <- function(df)
 {
   return (names(dplyr::select(df, -count)))
 }
 
 #' Return the consensus sequence at each position of the read table
-#' @export
 consensus.read_table <- function(df)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -251,7 +246,6 @@ consensus.read_table <- function(df)
 #' Return coverage at each position in read table
 #'
 #' @return A numeric vector
-#' @export
 coverage.read_table <- function(df)
 {
   counts <- df$count
@@ -280,9 +274,8 @@ coverage.read_table <- function(df)
 #' and with T corresponding to nucleotide positions that are
 #' part of the template.
 #'
-#' @returns A named numeric vector with entries giving allele counts
+#' @return A named numeric vector with entries giving allele counts
 #' and names giving alleles
-#' @export
 template_alleles.read_table <- function(template, df, match=F)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -334,9 +327,8 @@ template_alleles.read_table <- function(template, df, match=F)
 #' contain templates.  Templates must be unique
 #' @param df a read table
 #'
-#' @returns A list containing indices in df or read groups (rows)
+#' @return A list containing indices in df or read groups (rows)
 #' that have the given templates
-#' @export
 template_indices.read_table <- function(template, df)
 {
   if (!is.matrix(template))
@@ -369,7 +361,6 @@ template_indices.read_table <- function(template, df)
 #' @param df read table
 #'
 #' @return a logical matrix with each row giving a template
-#' @export
 templates.read_table <- function(df)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -407,7 +398,6 @@ reads_covering_positions.read_table <- function(df)
 #'
 #' @return A R by K logical matrix where R is number of reads and K is
 #' number of haplotypes.  A TRUE entry means the read covers the haplotype.
-#' @export
 reads_covering_haplotypes.read_table <- function(df, h)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -431,7 +421,6 @@ reads_covering_haplotypes.read_table <- function(df, h)
 #' @param df read_table
 #'
 #' @return A matrix with 5 rows and a column for each position in df
-#' @export
 nucs_at_pos.read_table <- function(df)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -467,7 +456,6 @@ nucs_at_pos.read_table <- function(df)
 #' @param df read_table object
 #'
 #' @return a numeric vector of start positions
-#' @export
 start_pos.read_table <- function(df)
 {
   all_pos <- all_pos.read_table(df)
@@ -480,7 +468,6 @@ start_pos.read_table <- function(df)
 #' @param df read_table object
 #'
 #' @return a numeric vector of start positions
-#' @export
 end_pos.read_table <- function(df)
 {
   all_pos <- all_pos.read_table(df)
@@ -493,7 +480,6 @@ end_pos.read_table <- function(df)
 #' @param df read_table object
 #'
 #' @return a list of numeric vectors containing read positions
-#' @export
 all_pos.read_table <- function(df)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -513,7 +499,6 @@ all_pos.read_table <- function(df)
 #' @param df read_table object
 #'
 #' @return a list of character vectors containing read nucleotides
-#' @export
 seq.read_table <- function(df)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -534,7 +519,6 @@ seq.read_table <- function(df)
 #'
 #' @return a square matrix with dimension equal to the number
 #' of read groups in the read graph
-#' @export
 adjacency_matrix.read_table <- function(df, sparse=T)
 {
   # if there are too many rows, computation should not be done because
@@ -628,7 +612,6 @@ adjacency_matrix.read_table <- function(df, sparse=T)
 #' @details If an entry in the returned logical vector is true then all
 #' positions prior to the entry are unlinked to all positions corresponding
 #' to the entry and greater.
-#' @export
 unlinked_pos.read_table <- function(df, min_cover)
 {
   df_nucs <- dplyr::select(df, -count)
@@ -1153,7 +1136,6 @@ error_filter.read_table <- function(df, error_freq, sig)
 #' corresponding to read groups that are identical at the remaining positions.
 #' This functions joins those reads and returns a read_table
 #' with unique read groups.
-#' @export
 regroup.read_table <- function(df)
 {
   nreads <- nrow(df)
@@ -1175,7 +1157,6 @@ regroup.read_table <- function(df)
 }
 
 #' Split a read_table into multiple read_tables representing unlinked loci
-#' @export
 split_unlinked_loci.read_table <- function(df, sort_loci=T, min_cover=1000)
 {
   linkage_ind <- unlinked_pos.read_table(df, min_cover=min_cover)

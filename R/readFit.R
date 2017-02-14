@@ -67,7 +67,6 @@ position_fit.readFit <- function(df, h, pi=NULL)
 #' Build a readFit object base on templates.  This is a
 #' generic function used to build readFit objects for
 #' both position and read based fits
-#' @export
 template_fit.readFit <- function(template_m, df, h, pi=NULL)
 {
   npos <- ncol(h)

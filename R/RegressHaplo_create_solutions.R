@@ -37,7 +37,6 @@ parameters.RegressHaplo <- function(df,
 #' @return A matrix with each column corresponding to a solution.
 #' Within each column, the first four rows are
 #' fit, rho, K, and kk followed the computed solution.
-#' @export
 solutions.RegressHaplo <- function(y, P, num_trials,
                                    rho_vals=c(.1,1,2,5),
                                    kk_vals=2)

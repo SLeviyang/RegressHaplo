@@ -220,7 +220,6 @@ get_variant_call_pos <- function(vc)
 #' otherwise a single error rate is returned representing sum of all possible errors
 #'
 #' @return A vector of error rates.
-#' @export
 get_error_rate <- function(pu, split_by_nuc=F)
 {
   nucs <- get_pileup_nt_names()
@@ -460,5 +459,63 @@ variant_calls_sig <- function(pu, sig=.01, heavy_tail=T)
   class(df) <- c("VSeqTools_variant_call", "data.frame")
 
   return (df)
+}
+
+
+#############################################################
+#' Converts reads to a sequence in the reference space
+#'
+#' Given a vector of read sequences and their corresponding cigars, returns the sequences
+#' in the reference space by removing soft clippings, removing insertions (relative to
+#' the reference), and inserting
+#' "-" for deletions (relative to the reference)
+#'
+#' @param seq Read sequences
+#' @param cigar Read cigars
+#'
+#' @return A vector of sequences in the reference space.  Insertions are ignored since they
+#' are not in the reference space
+#'
+create_refspace_seq <- function(seq, cigar)
+{
+  # creates character vector of sequences in reference space.
+  cat("number seq ", length(seq), "\n")
+
+  # seq = vectors of DNA strings
+  # cigar = cigar strings
+
+  # extracts the letters from cigar strings ("150M20S" --> c("M", "S")
+  ops <- explodeCigarOps(cigar)
+
+  # returns a IRangesList object.  Each IRanges describes the cigar on the reference
+  #   meaning that soft clippings and insertions are ignored, width==0
+  ref_pos <- cigarRangesAlongReferenceSpace(cigar)
+  # describes the cigar on the sequence strings meaning that deletions are ignored
+  query_pos <- cigarRangesAlongQuerySpace(cigar)
+
+
+  seq_paste <- mapply(function(cop, ref_qwidth, query_qwidth,
+                               query_start, query_end, cseq, i) {
+    # if qwidth > 0 in ref_pos, we check qwidth in query_pos
+    #  if query_pos qwidth == 0, we have a deletion, so we insert "---" of length qwidth
+    #          otherwhise, we have a match, so we insert substr(seq, start, end)
+    str <- sapply(1:length(cop), function(i) {
+      if (ref_qwidth[i]==0)  # soft clipping or insertion
+        return ("")
+      if (query_qwidth[i]==0)
+        return (paste(rep("-", ref_qwidth[i]), collapse=""))
+
+      return (substr(cseq, query_start[i], query_end[i]))
+    })
+
+    if (i %% 1000 == 0)
+      cat("converting seq to ref space:", i, "of", length(seq), "\n")
+
+    return (paste(str, collapse=""))
+  }, ops, width(ref_pos), width(query_pos), start(query_pos),
+  end(query_pos), as.character(seq), 1:length(seq), SIMPLIFY=T)
+
+
+  return (seq_paste)
 }
 

@@ -95,9 +95,9 @@ variant_calls_to_read_table.pipeline <- function(bam_file,
 
   # filter reads based on Poisson error model to construct read table
   # and minimum threshold for each read partition
-  pu <- VSeqTools::BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
+  pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
                               min_mapq=0)
-  error_rate <- VSeqTools::get_error_rate(pu, split_by_nuc=F)
+  error_rate <- get_error_rate(pu, split_by_nuc=F)
   df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
 
   df_filter <- clean.read_table(df_filter, min_count=0,
@@ -437,7 +437,7 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
 #'
 #' @export
 full_pipeline <- function(bam_file, out_dir,
-                          max_num_haplotypes=1000,
+                          max_num_haplotypes=800,
                           rho_vals=NULL,
                           start_pos=NULL, end_pos=NULL,
                           sig=.01, num_trials=700, heavy_tail=T)
