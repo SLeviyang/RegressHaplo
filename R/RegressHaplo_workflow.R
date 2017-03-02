@@ -442,6 +442,10 @@ full_pipeline <- function(bam_file, out_dir,
                           start_pos=NULL, end_pos=NULL,
                           sig=.01, num_trials=700, heavy_tail=T)
 {
+  if (!dir.exists(out_dir)) {
+    cat(out_dir, "does not exist\n")
+    stop("Please create the output directory and then call full_pipeline again.")
+  }
   bam_to_variant_calls.pipeline(bam_file, out_dir,
                                 start_pos=start_pos, end_pos=end_pos,
                                 sig=sig, heavy_tail=heavy_tail)
