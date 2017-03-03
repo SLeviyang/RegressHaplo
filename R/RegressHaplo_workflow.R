@@ -452,8 +452,10 @@ full_pipeline <- function(bam_file, out_dir,
     }
 
   if (!dir.exists(out_dir)) {
+    cat("REGRESSHAPLO WARNING:\n")
     cat(out_dir, "does not exist\n")
-    stop("Please create the output directory and then call full_pipeline again.")
+    cat("Please create the output directory and then call full_pipeline again\n")
+    return (NULL)
   }
   cat("Making variant calls...\n")
   bam_to_variant_calls.pipeline(bam_file, out_dir,
@@ -491,7 +493,7 @@ full_pipeline <- function(bam_file, out_dir,
   haplotypes_to_fasta.pipeline(bam_file, out_dir)
 
   cat("REGRESSHAPLO reconstruction complete!\n")
-  cat("See final_haplo.fasta in", out_dir, "for the reconstruction \n")
+  cat("See final_haplo.fasta in", out_dir, "directory for the reconstruction \n")
 
   return (NULL)
 }
