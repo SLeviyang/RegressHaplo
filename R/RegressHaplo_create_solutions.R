@@ -77,7 +77,7 @@ solutions.RegressHaplo <- function(y, P, num_trials,
           pi0 <- pi0/sum(pi0)
         }
 
-        cat("RHO", rho, "kk", kk)
+        cat("RHO", rho, "\n")
         cat("TRIAL", counter, "OF", nsolutions, "\n")
 
         reg <- penalized_regression.RegressHaplo(y, P, pi=pi0, rho=rho, kk=kk)

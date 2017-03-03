@@ -322,6 +322,7 @@ parameters_to_solutions.pipeline <- function(out_dir, num_trials=700,
   # if rho vals are null, try to find rho values that capture
   # large ran and produce different fit values.
   if (is.null(rho_vals)) {
+    cat("Since RHO values have not been provided, running 50 regressions to determine rho values.\n")
     rho_vals <- exp(seq(log(.001), log(10), length.out=50))
     parameters_to_solutions.pipeline(out_dir, num_trials=1,
                                      rho_vals = rho_vals)
@@ -442,21 +443,55 @@ full_pipeline <- function(bam_file, out_dir,
                           start_pos=NULL, end_pos=NULL,
                           sig=.01, num_trials=700, heavy_tail=T)
 {
+  if (!is.null(start_pos) & !is.null(end_pos))
+    if (end_pos < start_pos) {
+      cat("REGRESSHAPLO WARNING:\n",
+          "End position of reconstruction must be greater than start position!\n",
+          "Pipeline has been stopped.\n")
+      return (NULL)
+    }
+
   if (!dir.exists(out_dir)) {
     cat(out_dir, "does not exist\n")
     stop("Please create the output directory and then call full_pipeline again.")
   }
+  cat("Making variant calls...\n")
   bam_to_variant_calls.pipeline(bam_file, out_dir,
                                 start_pos=start_pos, end_pos=end_pos,
                                 sig=sig, heavy_tail=heavy_tail)
+
+  # check if there are variant calls
+  variant_calls <- get_variant_calls.pipeline(out_dir)
+  if (nrow(variant_calls)==0) {
+    cat("REGRESSHAPLO WARNING:", "There are no variable positions called!\n",
+        "The region is homogeneous up to NGS calls.\n",
+        "Pipeline has been stopped!\n")
+    return (NULL)
+  }
+
+  cat("Constructing read table (this may take a while)...\n")
   variant_calls_to_read_table.pipeline(bam_file, out_dir, sig=sig)
+
+  cat("Constructing regions/loci...\n")
   read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes, min_cover=500)
+
+  cat("Constructing haplotypes...\n")
   loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes)
+
+  cat("Preparing matrices and vectors for regression...\n")
   haplotypes_to_parameters.pipeline(out_dir)
+
+  cat("Solving regressions..\n")
   parameters_to_solutions.pipeline(out_dir, num_trials=num_trials,
                                                rho_vals=rho_vals)
+
+
+  cat("Choosing the best regression solution for the reconstruction..\n")
   solutions_to_haplotypes.pipeline(out_dir)
   haplotypes_to_fasta.pipeline(bam_file, out_dir)
+
+  cat("REGRESSHAPLO reconstruction complete!\n")
+  cat("See final_haplo.fasta in", out_dir, "for the reconstruction \n")
 
   return (NULL)
 }

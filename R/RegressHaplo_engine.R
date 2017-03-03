@@ -90,7 +90,7 @@ debug_optimize.engine <- function(rho, mu, kk)
 
 
 optimize.engine <- function(y, P, rho, pi, mu, kk,
-                            verbose=T)
+                            verbose=F)
 {
   glaveps <- 1E-6
 
@@ -126,15 +126,15 @@ optimize.engine <- function(y, P, rho, pi, mu, kk,
 
 
   # OUTER LOOP, RAISES PENALTY AND RECALCULATES LAGRANGE MULTIPLIES
-  cat("RUNNING AUGMENTED LAGRANGIAN WITH ERROR TARGET", glaveps, "\n")
+  #cat("RUNNING AUGMENTED LAGRANGIAN WITH ACCURACY TARGET", glaveps, "\n")
   while(total_error > glaveps & outer_loop_counter < 500) {
     outer_loop_counter <- outer_loop_counter + 1
     t <- 1
     L <- 1.25*max_Hessian_eigenvalue.engine(QQ)
     inner_loop_counter <- 0
 
-    if (verbose & (outer_loop_counter %% 50 == 0))
-      cat("OUTER LOOP", outer_loop_counter, "ERROR:", total_error, "\n")
+    #if (verbose & (outer_loop_counter %% 50 == 0))
+    #  cat("OUTER LOOP", outer_loop_counter, "ACCURACY:", total_error, "\n")
      #     constraint_value.engine(pi), "\n")
 
     #debug

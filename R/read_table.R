@@ -47,8 +47,15 @@ read_table <- function(bam_file,
   what <- c("seq", "pos", "qname")
   param <- ScanBamParam(which=which, what=what)
 
+
+  # this throws warnings if pairings are not matched
+  # let's not freak out users, so turn off warnings
+  oldw <- getOption("warn")
+  options(warn = -1)
   ga_pair <- readGAlignmentPairs(bam_file, bai_file,
                                  param=param)
+  options(warn = oldw)
+
 
   # check if this file has paired-end reads
   if (length(ga_pair)==0) {
