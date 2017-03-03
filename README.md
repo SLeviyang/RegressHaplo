@@ -84,6 +84,9 @@ The example dataset, discussed directly below, shows how each of these functions
 The **example/** folder has an example dataset (in data/) and example RegressHaplo output (in output/).  To generate your own version of the output, change your R working directory to the example/ directory, and then execute the following commands, which will create RegressHaplo output in the directory my\_output.  The reconstruction will be written to the file **my\_output/final_haplo.fasta**
 
 ```{r}
+# load RegressHaplo
+library("RegressHaplo")
+
 # BAM file containing the dataset
 bam_file <- "data/example.bam"
 
