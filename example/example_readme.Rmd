@@ -16,9 +16,10 @@ then run the RegressHaplo pipeline on the BAM file.
 ```{r, echo=T, results='hide', message=F, warning=F}
 bam_file <- "data/example.bam"
 out_dir <- "output/"
+dir.create(out_dir)
 full_pipeline(bam_file, out_dir, start_pos=500, end_pos=1500, num_trials=700)
 ```
-We have chosen to restrict reconstruction to reference positions $500$ through $1500$ and to optimize the penalized regression $700$ times.  The haplotypes returned will cover the full consensus, composed of $2500$ positions, but positions outside the $500-1500$ region will be set to consensus values.   (Here we restrict to such a short region for the sake of an example with relatively short run time.)
+We have chosen to restrict reconstruction to reference positions $500$ through $1500$ and to optimize the penalized regression $700$ times.  The haplotypes returned will cover the full consensus, composed of $2500$ positions, but positions outside the $500-1500$ region will be set to consensus values.   Here we restrict to such a short region for the sake of an example with relatively short run time.  On a i7-gen5 machine, it took about 3 minutes to run the code directly above.
 
 ## Parsing RegressHaplo Results
 

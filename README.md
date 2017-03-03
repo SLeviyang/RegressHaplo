@@ -29,6 +29,8 @@ biocLite("GenomicAlignments")
 
 ## Running RegressHaplo
 
+(For an example of running RegressHaplo, see **Example** below.)
+
 Once RegressHaplo is installed, you must load it into your R session:
 
 ```r
@@ -45,7 +47,7 @@ The intial input to the pipline is a BAM file.  **RegressHaplo assumes that the 
 samtools index [bam_file]
 ```
 
-The full pipeline can be run using the command (**the directory out\_dir must exist, RegressHaplo will not create it**):
+The full pipeline can be run using the following command (**the directory out\_dir must exist, RegressHaplo will not create it**):
 
 ```r
 full_pipeline(bam_file, out_dir, start_pos=NULL, end_pos=NULL, num_trials=700)
@@ -55,16 +57,16 @@ where
 * `bam_file` - path to the BAM file/
 * `out_dir` - directory in which output datafiles are written. 
 * `start_pos`,`end_pos` - variation will only be considered within the region between start\_pos and end\_pos, where position is relative to the reference.  All haplotypes returned will have the same length as the reference, but positions outside the specified region will be given consensus values.
-* `num_trials` - number of times the penalized regression will be solved using different starting points and different values for rho.  (Values for rho can be specified, see below.)  Raising num\_trials improves reconstruction, but increases run time.
+* `num_trials` - number of times the penalized regression will be solved using different starting points and different values for rho.  Raising num\_trials improves reconstruction, but increases run time.
 
 
-`full_pipeline` has several optional parameters that allow for greater control of the pipeline, see R help through `help("full_pipeline")` for further details.  RegressHaplo will overwrite any files in the output directory during execution of the pipeline. 
+`full_pipeline` has several optional parameters that allow for greater control of the pipeline, use R help command, i.e. `help("full_pipeline")`, for further details.  RegressHaplo will overwrite any files in the output directory during execution of the pipeline. 
 
-**After the pipeline is run, the final haplotype reconstruction is written to the file `final_haplo.fasta` in the specified output directory**
+###After the pipeline is run, the final haplotype reconstruction is written to the file `final_haplo.fasta` in the specified output directory
 
 ## Parsing RegressHaplo Output
 
-The RegresHaplo haplotype reconstruction can be accessed directly through the `final_haplo.fasta` file.  In the file, each haplotype is of the form **haplotype#\_freq**, e.g. haplotype1\_0.35, where freq gives the reconstructed frequency of the haplotype.
+The RegresHaplo haplotype reconstruction can be accessed directly through the `final_haplo.fasta` file.  In the file, each haplotype is named with the form **haplotype#\_freq**, e.g. haplotype1\_0.35, where freq gives the reconstructed frequency of the haplotype, eg. 0.35.
 
 Alternatively, several functions provide an interface to pipeline results:
 
@@ -76,9 +78,20 @@ The example dataset, discussed directly below, shows how each of these functions
 
 ## Example
 
-The best way to understand RegressHaplo is to look through an example.
+The **example/** folder has an example dataset (in data/) and example RegressHaplo output (in output/).  To generate your own version of the output, change your R working directory to the example/ directory, and then execute the following commands, which will create RegressHaplo output in the directory my\_output.  The reconstruction will be written to the file **my\_output/final_haplo.fasta**
 
-See the **example/** folder for an example dataset and output.   See **example/example\_readme.pdf** for the code used to generate the example output and further details.  
+```{r}
+# BAM file containing the dataset
+bam_file <- "data/example.bam"
+
+# directory in which RegressHaplo output will be writtenout_dir <- "my_output/"
+dir.create(out_dir)
+
+# run the RegressHaplo pipelinefull_pipeline(bam_file, out_dir, start_pos=500, end_pos=1500, num_trials=700)
+```
+
+###See **example/example_readme.pdf** for further details on using the RegressHaplo pipeline.  
+The code we used to produce the results in \output and further details regarding using the pipeline are contained in **example/example_readme.pdf** which was created using the R markdown file example/example_readme.Rmd.   
 
 
 ## Pipeline Components
