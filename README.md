@@ -12,6 +12,16 @@ where J(x) is a quadratic penalty term.   A link with further details regarding 
 
 ## Installation
 
+
+RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, rmutil, Rsamtools, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings, Rsamtools, and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
+
+```r
+source("https://bioconductor.org/biocLite.R")
+biocLite("Biostrings")
+biocLite("Rsamtools")
+biocLite("GenomicAlignments")
+```
+
 It's easiest to install RegressHaplo using the R package devtools.  After installing devtools, e.g. `install.packages("devtools")`, execute the following commands in R
 
 ```r
@@ -19,13 +29,6 @@ library(devtools)
 install_github("SLeviyang/RegressHaplo")
 ```
 
-RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, Rsamtools, rmutil, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
-
-```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("Biostrings")
-biocLite("GenomicAlignments")
-```
 
 ## Running RegressHaplo
 
