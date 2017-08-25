@@ -26,7 +26,8 @@
 #' @export
 read_table <- function(bam_file,
                        bai_file=NULL,
-                       variant_calls)
+                       variant_calls, 
+                       debug=F)
 {
   if (is.null(bai_file)) {
     bai_file <- paste(bam_file, ".bai", sep="")
@@ -41,19 +42,43 @@ read_table <- function(bam_file,
 
   bam_header <- scanBamHeader(bam_file)[[1]]
   ref_name <- names(bam_header$targets)
+  
+  if (debug) {
+    print("BAM header and reference")
+    print(bam_header)
+    print(ref_name)
+    print("Variable positions")
+    print(nt_pos)
+  }
 
   which <- GRanges(seqnames = ref_name,
                    ranges=IRanges(start_pos, end_pos))
   what <- c("seq", "pos", "qname")
   param <- ScanBamParam(which=which, what=what)
+  
+  if (debug) {
+    print("BAM input parameters")
+    print(param)
+  }
 
 
   # this throws warnings if pairings are not matched
   # let's not freak out users, so turn off warnings
   oldw <- getOption("warn")
   options(warn = -1)
+  
+  if (debug) {
+    print("Preparing to read alignments.  GenomicAlignments ver:")
+    print(package.version("GenomicAlignments"))
+  }
   ga_pair <- readGAlignmentPairs(bam_file, bai_file,
                                  param=param)
+  
+  if (debug) {
+    print("Full Alignment")
+    print(ga_pair)
+  }
+  
   options(warn = oldw)
 
 
@@ -66,7 +91,8 @@ read_table <- function(bam_file,
   } else {
     print("PROCESSING FILE AS PAIRED END READS")
     paired_end <- T
-    read_strings <- paired_end_read_table(ga_pair, nt_pos)
+    read_strings <- paired_end_read_table(ga_pair, nt_pos,
+                                          debug=debug)
   }
 
   read_strings_t <- table(read_strings)
@@ -158,13 +184,33 @@ single_end_read_table <- function(ga, nt_pos)
 #' by calling read_table
 #'
 paired_end_read_table <- function(ga_pair,
-                                  nt_pos)
+                                  nt_pos,
+                                  debug=F)
 {
   ga1 <- first(ga_pair)
   ga2 <- last(ga_pair)
 
   seq1 <- as.character(mcols(ga1)$seq)
   seq2 <- as.character(mcols(ga2)$seq)
+  
+  if (debug) {
+    print("Full pairing information")
+    print(ga_pair)
+    print("First end information")
+    print(ga1)
+    print("Second end information")
+    print(ga2)
+    
+    nseq1 <- min(length(seq1), 2)
+    nseq2 <- min(length(seq2), 2)
+    
+    print("First end sequences")
+    if (nseq1 > 0) 
+      print(seq1[1:nseq1])
+    print("Second end sequences")
+    if (nseq2 > 0)
+      print(seq2[1:nseq2])
+  }
 
   seq_on_ref1 <- create_refspace_seq(seq1, cigar(ga1))
   seq_on_ref2 <- create_refspace_seq(seq2, cigar(ga2))

@@ -75,13 +75,15 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 #' @export
 variant_calls_to_read_table.pipeline <- function(bam_file,
                                        out_dir,
-                                       sig=.01)
+                                       sig=.01,
+                                       debug=F)
 {
   out_dir <- fix_out_dir(out_dir)
   variant_calls <- get_variant_calls.pipeline(out_dir)
 
   # construct raw read table
-  df <- read_table(bam_file, variant_calls=variant_calls)
+  df <- read_table(bam_file, variant_calls=variant_calls,
+                   debug=debug)
   read_table_file <- paste(out_dir, "raw_read_table.csv", sep="")
   write.table(df, read_table_file, sep=",", row.names=F)
 
