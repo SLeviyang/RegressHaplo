@@ -187,8 +187,8 @@ paired_end_read_table <- function(ga_pair,
                                   nt_pos,
                                   debug=F)
 {
-  ga1 <- first(ga_pair)
-  ga2 <- last(ga_pair)
+  ga1 <- GenomicAlignments::first(ga_pair)
+  ga2 <- GenomicAlignments::last(ga_pair)
 
   seq1 <- as.character(mcols(ga1)$seq)
   seq2 <- as.character(mcols(ga2)$seq)
