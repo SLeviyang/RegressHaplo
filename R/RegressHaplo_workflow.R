@@ -362,17 +362,19 @@ parameters_to_solutions.pipeline <- function(out_dir, num_trials=700,
 #'
 #' @param out_dir output directory for haplotype file and assumed
 #' directory of solutions file
+#' @param K_val pick the best solution out of solutions with K_val
+#' haplotypes.  If NULL, then optimal K_val is used.
 #'
 #' @return path to solutions file
 #' @export
-solutions_to_haplotypes.pipeline <- function(out_dir)
+solutions_to_haplotypes.pipeline <- function(out_dir, K_val=NULL)
 {
   s <- get_solutions.pipeline(out_dir)
   h <- get_h.pipeline(out_dir)
 
   rhs <- RegressHaploSolutions(s, h)
 
-  H <- best_fit.RegressHaploSolutions(rhs, K_val = NULL)$H
+  H <- best_fit.RegressHaploSolutions(rhs, K_val = K_val)$H
 
   out_dir <- fix_out_dir(out_dir)
   H_file <- paste(out_dir, "final_haplo.csv", sep="")

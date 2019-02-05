@@ -8,7 +8,8 @@ min_x ||y-Px||^2 + rho*J(x)
 
 where J(x) is a quadratic penalty term.   A link with further details regarding the regression will be posted **here** shortly.  
 
-####If you have any questions or encounter a bug, please open an issue through github or e-mail Sivan Leviyang sr286@georgetown.edu.  
+####If you have any questions or encounter a bug, please open an issue through github or e-mail Sivan Leviyang sr286@georgetown.edu.  This package can be modified and distributed under the Apache 2.0 License, see LICENSE file for details
+
 
 ## Installation
 
