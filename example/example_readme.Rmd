@@ -57,6 +57,7 @@ Check that the different rho have produced a range of K values
 ```{r}
 plot(df$rho, df$K, xlab="rho", ylab="K")
 ```
+
 We have captured solutions with $K$ values (the number of haplotypes reconstructed) ranging from $3$ to $14$, although $K=6,10,11$ are missing.  This is a good spread of $K$ values; often a particular $K$ value will be missed.
 
 We can check the $rho$ values used
