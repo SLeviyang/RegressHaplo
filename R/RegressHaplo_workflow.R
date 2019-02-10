@@ -35,6 +35,8 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 
   pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
                    min_mapq=0)
+  pu_file <- paste(out_dir, "pile_up.csv", sep="")
+  write.csv(pu, pu_file, row.names = F)
 
   #bonferroni correction
   bf_sig <- sig/nrow(pu)
@@ -64,30 +66,42 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
 #' Given variant calls and a bam file, create a read table
 #' @param bam_file path to bam file
 #' @param out_dir output directory, will be created if needed
+#' @param use_raw_read_table If there is an existing raw_read_table.csv file, should
+#' it be used as a raw read table?  See details.
 #' @param sig significance levels at which to filter reads.
 #'
 #' @details Converts bam_file to a raw read table, written to
 #' $outdir/raw_read_table.csv and then applies error correction
 #' to reads and creates a filtered read table, written to
-#' $outdir/read_table.csv
+#' $outdir/read_table.csv.   The parameter use_raw_read_table can
+#' be used to skip the step of creating the raw read table, which
+#' is very time consuming.  This is particularly useful, if the
+#' user wants to experiment with different error levels to form
+#' an acceptable read table.
 #'
 #' @return path to read table file
 #' @export
 variant_calls_to_read_table.pipeline <- function(bam_file,
                                        out_dir,
+                                       use_raw_read_table=F,
                                        sig=.01,
                                        debug=F)
 {
   out_dir <- fix_out_dir(out_dir)
   variant_calls <- get_variant_calls.pipeline(out_dir)
+  pu <- get_pile_up.pipeline(out_dir)
 
   # construct raw read table
-  df <- read_table(bam_file, variant_calls=variant_calls,
+  if (!use_raw_read_table) {
+    df <- read_table(bam_file, variant_calls=variant_calls, pu=pu,
                    debug=debug)
-  read_table_file <- paste(out_dir, "raw_read_table.csv", sep="")
-  write.table(df, read_table_file, sep=",", row.names=F)
+    read_table_file <- paste(out_dir, "raw_read_table.csv", sep="")
+    write.table(df, read_table_file, sep=",", row.names=F)
+  } else
+    df <- get_read_table.pipeline(out_dir, raw=T)
 
   # clean up read table to eliminate empty rows
+  print("cleaning read table")
   df <- clean.read_table(df, min_count=0,
                          remove_outside_reads=T,
                          remove_empty_cols=T,
@@ -97,11 +111,13 @@ variant_calls_to_read_table.pipeline <- function(bam_file,
 
   # filter reads based on Poisson error model to construct read table
   # and minimum threshold for each read partition
-  pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0,
-                              min_mapq=0)
+  print("setting up for read table error correction")
+  pu <- get_pile_up.pipeline(out_dir)
   error_rate <- get_error_rate(pu, split_by_nuc=F)
+
   df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
 
+  print("cleaning read table again")
   df_filter <- clean.read_table(df_filter, min_count=0,
                          remove_outside_reads=T,
                          remove_empty_cols=T,
@@ -119,19 +135,23 @@ variant_calls_to_read_table.pipeline <- function(bam_file,
 #'
 #' @param out_dir output directory for parameter files and assumed
 #' directory of read table
+#' @param max_num_haplotypes the maximum number of haplotypes over the full reference
+#' that will be considered.
 #'
-#' @details The read table is assumed to be in out_dir with filename read_table.csv.
+#' @details The read table is assumed to be in out_dir with filename read_table.csv.  The
+#' parameter min_cover can (and should) be used to force loci to break across low coverage
+#' regions of the reference.
 #' @return NULL
 #' @export
 read_table_to_loci.pipeline <- function(out_dir,
-                                        max_num_haplotypes=1200,
-                                        min_cover=500)
+                                        max_num_haplotypes=1200)
 {
   df <- get_read_table.pipeline(out_dir)
 
   # split into loci based on gaps
+  print("making initial locus choices")
   sdf_initial <- split_unlinked_loci.read_table(df, sort_loci=F,
-                                                min_cover=min_cover)
+                                                min_cover=0)
 
   # check each locus to see if the number of haplotypes is less
   # than max_num_haplotypes.  if less, then remove from sdf and
@@ -145,6 +165,14 @@ read_table_to_loci.pipeline <- function(out_dir,
 
       hp <- consistent_haplotypes.read_table(cdf, rm.na=T,
                                              max_num_haplotypes=max_num_haplotypes)
+      # if there are no consistent haplotypes,
+      # hp can come back as NULL or nrow==0, this needs to be corrected
+      # in consistent haplotypes computations, so that NULL is only return,
+      # but for now we catch it here
+      if (!is.null(hp))
+        if (nrow(hp)==0)
+          hp <- NULL
+
       # hp will be null if number of haplotypes exceeds max_num_haplotypes
       if (!is.null(hp)) {
         cat("accepted locus ", i, "with num haps:", length(hp), "\n")
@@ -157,7 +185,7 @@ read_table_to_loci.pipeline <- function(out_dir,
       }
     } # end for loop
     sdf <- sdf_next
-    cat("processed:", length(sdf_final), "tobe:", length(sdf), "\n")
+    cat("processed:", length(sdf_final), "unprocessed:", length(sdf), "\n")
   } # end while loop
 
   # we need to sort sdf_final since the loci might not be in order
@@ -183,6 +211,7 @@ read_table_to_loci.pipeline <- function(out_dir,
 loci_to_haplotypes.pipeline <- function(out_dir,
                                         max_num_haplotypes=1000)
 {
+
   df <- get_read_table.pipeline(out_dir)
   loci <- get_loci.pipeline(out_dir)
 
@@ -197,8 +226,10 @@ loci_to_haplotypes.pipeline <- function(out_dir,
   local_rho <- 0
   nhaps <- number_global_haplotypes.RegressHaplo(local_rho, ldf, max_num_haplotypes)
 
+  cat("initial number of global haplotypes:", nhaps, "\n")
   # if filtering is required then try to hit target within .8-1 of max_num_haplotypes
   if (nhaps > max_num_haplotypes) {
+    print("too many global haplotypes, reducing number of local haplotypes!")
     # setup bisection
     left_rho <- 0
     left_n <- nhaps
@@ -218,6 +249,7 @@ loci_to_haplotypes.pipeline <- function(out_dir,
     repeat {
       center_rho <- (left_rho + right_rho)/2
       center_n <- number_global_haplotypes.RegressHaplo(center_rho, ldf, max_num_haplotypes)
+      
       ratio <- center_n/max_num_haplotypes
       cat("left_n right_n center_rho", left_n, right_n, center_rho, "\n")
 
@@ -403,7 +435,8 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
   variable_pos <- get_variable_positions.pipeline(out_dir)
   colnames(haplo_m) <- variable_pos
 
-  pu <- BAM_pileup(bam_file, max_depth=2000)
+  pu <- get_pile_up.pipeline(out_dir)
+
   consensus <- consensus(pu)
   all_pos <- 1:nrow(pu)
 
@@ -414,7 +447,7 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
       return (rep(consensus[i], nhaps))
   })
   hap_s <- apply(out_haps, 1, paste, collapse="")
-  dna <- DNAStringSet(hap_s)
+  dna <- BStringSet(hap_s)
   names(dna) <- paste("haplotype", 1:nhaps, "_", round(10^4*pi)/10^4, sep="")
 
   out_dir <- fix_out_dir(out_dir)
@@ -479,7 +512,7 @@ full_pipeline <- function(bam_file, out_dir,
   variant_calls_to_read_table.pipeline(bam_file, out_dir, sig=sig)
 
   cat("Constructing regions/loci...\n")
-  read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes, min_cover=500)
+  read_table_to_loci.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes)
 
   cat("Constructing haplotypes...\n")
   loci_to_haplotypes.pipeline(out_dir, max_num_haplotypes=max_num_haplotypes)
@@ -513,6 +546,17 @@ get_variant_calls.pipeline <- function(out_dir)
 
   df <- read.table(file, header=T, sep=",", check.names = F,
                    stringsAsFactors = F)
+  return (df)
+}
+
+#' @export
+get_pile_up.pipeline <- function(out_dir)
+{
+  out_dir <- fix_out_dir(out_dir)
+  file <- paste(out_dir, "pile_up.csv", sep="")
+
+  df <- read_BAM_pileup(file)
+  
   return (df)
 }
 
@@ -561,7 +605,9 @@ get_loci.pipeline <- function(out_dir)
   loci_file <- paste(out_dir, "loci.csv", sep="")
   loci_df <- read.csv(loci_file, header=T, stringsAsFactors = F)
 
-  loci <- strsplit(loci_df$pos, split="\\+")
+  # BUG FIX HERE BY Stephen Shank and Dave Bouvier
+  #loci <- strsplit(as.character(loci_df$pos), split="\\+")
+  loci <- strsplit(as.character(loci_df$pos), split="\\+")
 
   return (loci)
 }
@@ -634,7 +680,7 @@ get_fasta.pipeline <- function(out_dir)
   out_dir <- fix_out_dir(out_dir)
   hfile <- paste(out_dir, "final_haplo.fasta", sep="")
 
-  dna <- readDNAStringSet(hfile)
+  dna <- readBStringSet(hfile)
   freq_names <- names(dna)
   freq <- sapply(freq_names, function(s) strsplit(s, split="_")[[1]][2])
   freq <- as.numeric(freq)

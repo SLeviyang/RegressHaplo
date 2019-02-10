@@ -15,4 +15,3 @@ a list of character vectors containing read nucleotides
 \description{
 Return the nucleotides in each read group of a read table
 }
-

@@ -9,4 +9,3 @@ split_unlinked_loci.read_table(df, sort_loci = T, min_cover = 1000)
 \description{
 Split a read_table into multiple read_tables representing unlinked loci
 }
-

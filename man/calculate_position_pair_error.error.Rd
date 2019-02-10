@@ -18,4 +18,3 @@ frequency differences at each position over true/predicted nucleotide pairs.
 \description{
 Calculate error for each position pair
 }
-

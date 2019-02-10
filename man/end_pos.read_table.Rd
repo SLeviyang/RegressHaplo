@@ -15,4 +15,3 @@ a numeric vector of start positions
 \description{
 Return the end position of each read group in a read table
 }
-

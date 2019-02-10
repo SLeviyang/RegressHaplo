@@ -5,7 +5,8 @@
 \title{Generate consistent haplotypes for a read table and applies a
 RegressHaplo optimization.}
 \usage{
-nofilter_and_optimize.RegressHaplo(df, rho, max_dim = 1200, min_cover = 500)
+nofilter_and_optimize.RegressHaplo(df, rho, max_dim = 1200,
+  min_cover = 500)
 }
 \arguments{
 \item{df}{read table}
@@ -43,4 +44,3 @@ the number of consistent haplotypes < max_dim, RegressHaplo is applied.
 To run an optimization, run_optimization must be TRUE and a global_rho
 must be provided.
 }
-

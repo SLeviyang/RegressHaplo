@@ -18,4 +18,3 @@ number of haplotypes.  A TRUE entry means the read covers the haplotype.
 \description{
 For each haplotype, return reads that match haplotype at covered positions
 }
-

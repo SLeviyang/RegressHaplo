@@ -53,4 +53,3 @@ algorithm locally.
 To run an optimization, run_optimization must be TRUE and a global_rho
 must be provided.
 }
-

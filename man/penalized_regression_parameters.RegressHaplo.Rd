@@ -25,4 +25,3 @@ The regression solves
 \min |y - P*pi|^2 + \rho \pi^T*M*\pi
 subject to:  \sum \pi_i = 1, \pi_i \ge 0.
 }
-

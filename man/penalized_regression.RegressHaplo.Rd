@@ -10,4 +10,3 @@ penalized_regression.RegressHaplo(y, P, pi = NULL, rho, kk = 2,
 \description{
 Solves min_pi |y - P*pi|^2 + rho*pi^T*M*pi
 }
-

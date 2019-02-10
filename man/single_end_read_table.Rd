@@ -10,4 +10,3 @@ single_end_read_table(ga, nt_pos)
 Should not be called directly by user, but instead is accessed
 by calling read_table
 }
-

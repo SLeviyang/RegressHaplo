@@ -9,4 +9,3 @@ max_Hessian_eigenvalue.engine(QQ)
 \description{
 Compute maximum eigenvalue of Hessian to scale gradient
 }
-

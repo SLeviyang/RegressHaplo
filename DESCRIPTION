@@ -7,8 +7,9 @@ Author: Sivan Leviyang
 Maintainer: Who to complain to <sr286@georgetown.edu>
 Description: Uses a penalized regression to infer haplotypes using BAM file
     input. Reasonable run-times depend on low diversity levels in the BAM reads.
-License: What license is it under?
+License: Apache 2.0
 LazyData: TRUE
+Encoding: UTF-8
 Depends:
     igraph,
     plyr,
@@ -17,4 +18,4 @@ Depends:
     Rsamtools,
     rmutil,
     GenomicAlignments
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.1

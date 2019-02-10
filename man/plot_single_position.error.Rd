@@ -15,4 +15,3 @@ otherwise show a barplot giving error at each position}
 \description{
 Plot the position errors
 }
-

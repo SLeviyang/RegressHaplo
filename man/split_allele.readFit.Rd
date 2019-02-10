@@ -21,4 +21,3 @@ Alleles for a template formed by pasting, eg, TAT<TTA>CAC.
 To recover the read position values we need to split the allele
 to return T,A,T,<TTA>,C,A,C
 }
-

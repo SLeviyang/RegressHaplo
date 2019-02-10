@@ -22,4 +22,3 @@ Given RegressHaplo haplotypes file, produce fasta file showing
 haplotypes over the full reference with frequencies as part of
 sequence names
 }
-

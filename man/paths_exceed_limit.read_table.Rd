@@ -27,4 +27,3 @@ exceeds num_paths, the algorithm exits.   This is needed when the number
 of edges is very large and we would waste time computing the total
 number of paths.
 }
-

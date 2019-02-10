@@ -25,4 +25,3 @@ Given a parameter files, run RegressHaplo to produce multiple solutions
 \details{
 The parameter files assumed to exist are y.csv, P.csv, h.csv
 }
-

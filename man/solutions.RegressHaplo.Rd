@@ -16,4 +16,3 @@ fit, rho, K, and kk followed the computed solution.
 For fixed y and P, generate solutions for every combination of
 rho and kk in rho_vals and kk_vals.
 }
-

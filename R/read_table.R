@@ -6,6 +6,8 @@
 #' @param bai_file index file.  If missing then .bai appendix on bam_file is assumed.
 #' @param variant_calls.  A data.frame specifying positions and nucleotides on
 #' reference to be taken as true variants, see details.
+#' @param pu A BAM pileup object returned by BAM_pileup method.  If NULL, a pile up
+#' will be created
 #'
 #' @return
 #' A data.frame with columns:  count pos1 pos2 .. posn.
@@ -26,7 +28,8 @@
 #' @export
 read_table <- function(bam_file,
                        bai_file=NULL,
-                       variant_calls, 
+                       variant_calls,
+                       pu=NULL,
                        debug=F)
 {
   if (is.null(bai_file)) {
@@ -42,7 +45,7 @@ read_table <- function(bam_file,
 
   bam_header <- scanBamHeader(bam_file)[[1]]
   ref_name <- names(bam_header$targets)
-  
+
   if (debug) {
     print("BAM header and reference")
     print(bam_header)
@@ -55,7 +58,7 @@ read_table <- function(bam_file,
                    ranges=IRanges(start_pos, end_pos))
   what <- c("seq", "pos", "qname")
   param <- ScanBamParam(which=which, what=what)
-  
+
   if (debug) {
     print("BAM input parameters")
     print(param)
@@ -66,19 +69,19 @@ read_table <- function(bam_file,
   # let's not freak out users, so turn off warnings
   oldw <- getOption("warn")
   options(warn = -1)
-  
+
   if (debug) {
     print("Preparing to read alignments.  GenomicAlignments ver:")
     print(package.version("GenomicAlignments"))
   }
   ga_pair <- readGAlignmentPairs(bam_file, bai_file,
                                  param=param)
-  
+
   if (debug) {
     print("Full Alignment")
     print(ga_pair)
   }
-  
+
   options(warn = oldw)
 
 
@@ -136,7 +139,8 @@ read_table <- function(bam_file,
 
   # now remove variants which are not called
   cat("filtering for variant calls", "\n")
-  pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0, min_mapq=0)
+  if (is.null(pu))
+    pu <- BAM_pileup(bam_file, max_depth=5000, min_base_quality=0, min_mapq=0)
   consensus_values <- consensus(pu)[variant_calls$pos]
   df <- filter_true_variants.read_table(df, variant_calls, consensus_values)
 
@@ -192,7 +196,7 @@ paired_end_read_table <- function(ga_pair,
 
   seq1 <- as.character(mcols(ga1)$seq)
   seq2 <- as.character(mcols(ga2)$seq)
-  
+
   if (debug) {
     print("Full pairing information")
     print(ga_pair)
@@ -200,12 +204,12 @@ paired_end_read_table <- function(ga_pair,
     print(ga1)
     print("Second end information")
     print(ga2)
-    
+
     nseq1 <- min(length(seq1), 2)
     nseq2 <- min(length(seq2), 2)
-    
+
     print("First end sequences")
-    if (nseq1 > 0) 
+    if (nseq1 > 0)
       print(seq1[1:nseq1])
     print("Second end sequences")
     if (nseq2 > 0)
@@ -868,7 +872,7 @@ consistent_haplotypes.read_table <- function(df_in, rm.na=F,
   return (consistent_haps)
 }
 
-#' Quickly determine the number of paths in an adjacency matrix exceed
+#' Quickly determine if the number of paths in an adjacency matrix exceed
 #' a lower limit
 #'
 #' @param m adjacency matrix
@@ -975,7 +979,6 @@ consistent_haplotypes_single_end.read_table <- function(df, rm.na=F,
   # can't just split
   haplotypes_ind <- match(haplotypes_s_unique, haplotypes_s)
   haplotypes <- haplotypes_all_paths[haplotypes_ind,,drop=F]
-
 
   colnames(haplotypes) <- pos_names.read_table(df)
 
@@ -1148,8 +1151,8 @@ error_filter.read_table <- function(df, error_freq, sig)
    keep_ind <- Map(function(ind, counts, npos, i) {
      total <- sum(counts)
 
-     if (total < 100)
-       return (NULL)
+     #if (total < 100)
+    #   return (NULL)
      # if sig==0, then no errors and include all reads
      if (sig==0)
        return (ind)
@@ -1164,8 +1167,8 @@ error_filter.read_table <- function(df, error_freq, sig)
      above_noise_ind <- ind[above_noise]
      above_noise_counts <- counts[above_noise]
 
-     if (sum(above_noise_counts) < 100)
-       return (NULL)
+     #if (sum(above_noise_counts) < 100)
+      # return (NULL)
 
      return (above_noise_ind)
    }, temp_read_ind, temp_counts, temp_num_pos,

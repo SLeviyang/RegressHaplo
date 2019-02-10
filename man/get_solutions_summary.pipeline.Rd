@@ -19,4 +19,3 @@ for a given starting point and rho value.
 \description{
 Summary of regression fits over all starting points
 }
-

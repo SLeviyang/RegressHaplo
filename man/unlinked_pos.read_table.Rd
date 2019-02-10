@@ -22,4 +22,3 @@ If an entry in the returned logical vector is true then all
 positions prior to the entry are unlinked to all positions corresponding
 to the entry and greater.
 }
-

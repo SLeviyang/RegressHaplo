@@ -38,4 +38,3 @@ with the particular nt value.
 Using the Rsamtools pileup function, the counts of A,C,G,T,i,d
 are determined at each position on reference
 }
-

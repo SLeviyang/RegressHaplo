@@ -21,4 +21,3 @@ Given a pileup, a consensus sequence is determined at each position
 on the reference.  The consensus is returned as a character vector
 with possible entries A, C, G, T, d, i.
 }
-

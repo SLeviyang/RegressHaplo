@@ -13,4 +13,3 @@ Compute the augmented lagrangian
 This function is not used in the optimization and is only for debugging
 purposes
 }
-

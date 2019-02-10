@@ -39,4 +39,3 @@ are nucleotide sequences corresponding to a given sequence template
 (see tempate in read_table objects).  Coverage is the number of reads
 with a given template.
 }
-

@@ -13,4 +13,3 @@ number of positions.  A TRUE entry means the read covers the position
 \description{
 For each position, return reads that cover the position
 }
-

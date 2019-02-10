@@ -9,4 +9,3 @@ grad_AL.engine(QQ, Py_more, pi)
 \description{
 Compute gradient of augmented lagrangian
 }
-

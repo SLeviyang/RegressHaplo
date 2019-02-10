@@ -10,4 +10,3 @@
 \description{
 Limit read table to a subset of positions
 }
-

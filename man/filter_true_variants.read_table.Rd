@@ -23,4 +23,3 @@ Filter read table for variant calls
 \details{
 nrow of variant calls must equal length of conseunsus values
 }
-

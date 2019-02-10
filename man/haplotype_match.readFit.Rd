@@ -23,4 +23,3 @@ Given a nucleotide pattern covering some portion of
 read table positions, return a vector of 1's and 0's
 representing haplotypes that match the patterh
 }
-

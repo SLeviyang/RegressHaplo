@@ -17,4 +17,3 @@ A haplotype matrix
 \description{
 A helper function that converts read graph paths to haplotype matrices
 }
-

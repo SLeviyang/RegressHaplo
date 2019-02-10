@@ -4,9 +4,9 @@
 \alias{full_pipeline}
 \title{Execute full RegressHaplo pipeline}
 \usage{
-full_pipeline(bam_file, out_dir, max_num_haplotypes = 800, rho_vals = NULL,
-  start_pos = NULL, end_pos = NULL, sig = 0.01, num_trials = 700,
-  heavy_tail = T)
+full_pipeline(bam_file, out_dir, max_num_haplotypes = 800,
+  min_cover = 500, rho_vals = NULL, start_pos = NULL,
+  end_pos = NULL, sig = 0.01, num_trials = 700, heavy_tail = T)
 }
 \arguments{
 \item{bam_file}{bam file}
@@ -35,4 +35,3 @@ Any number above 1200 will lead to very slow run times.}
 \description{
 Execute full RegressHaplo pipeline
 }
-

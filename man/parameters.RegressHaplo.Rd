@@ -16,4 +16,3 @@ a list with entries y (numeric), P(numeric matrix) and h
 Generates y and P using a call to filter_and_optimize.RegressHaplo and
 also returns a matrix of consistent haploytpes
 }
-

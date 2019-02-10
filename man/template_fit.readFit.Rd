@@ -13,4 +13,3 @@ Build a readFit object base on templates.  This is a
 generic function used to build readFit objects for
 both position and read based fits
 }
-

@@ -32,4 +32,3 @@ cutoff (min_freq) or a significance level(sig)
 Exactly one of min_freq and sig must be non-NULL.  This
 determines whether cutoff or poisson algorithm is used.
 }
-

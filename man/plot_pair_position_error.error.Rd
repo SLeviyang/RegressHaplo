@@ -14,4 +14,3 @@ plot_pair_position_error.error(df)
 \description{
 Plot the position errors
 }
-

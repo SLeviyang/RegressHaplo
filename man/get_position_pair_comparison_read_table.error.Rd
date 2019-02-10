@@ -9,4 +9,3 @@ get_position_pair_comparison_read_table.error(out_dir)
 \description{
 Get `position_pair_read_table.csv` from directory
 }
-

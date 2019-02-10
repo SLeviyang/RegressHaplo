@@ -18,4 +18,3 @@ variants are called.
 Get variant call positions from a VSeqTools_variant_call
 object
 }
-

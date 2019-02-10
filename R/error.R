@@ -30,9 +30,9 @@ single_position.error <- function(pu,
   nhaps <- length(freq)
   npos_hap <- ncol(hap_m)
 
-  pu_nuc_names <- c("A", "C", "G", "T", "d")
+  pu_nuc_names <- c("A", "C", "G", "T", "d", "i")
 
-  hap_nuc_names <- c("A", "C", "G", "T", "-")
+  hap_nuc_names <- c("A", "C", "G", "T", "-", "i")
   template <- rep(0, length(pu_nuc_names))
   names(template) <- hap_nuc_names
 

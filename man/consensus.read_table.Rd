@@ -9,4 +9,3 @@ consensus.read_table(df)
 \description{
 Return the consensus sequence at each position of the read table
 }
-

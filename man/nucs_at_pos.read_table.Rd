@@ -15,4 +15,3 @@ A matrix with 5 rows and a column for each position in df
 \description{
 Return nucleotide counts at each position
 }
-

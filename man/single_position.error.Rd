@@ -24,4 +24,3 @@ sum of absolute value of frequency error over the nucleotides.
 \description{
 Determine the frequency error at variable positions
 }
-

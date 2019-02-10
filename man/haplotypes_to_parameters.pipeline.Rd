@@ -18,4 +18,3 @@ files specify y, P, and the haplotypes represented by h
 \details{
 The read table is assumed to be in out_dir with filename read_table.csv.
 }
-

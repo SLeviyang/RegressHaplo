@@ -4,10 +4,9 @@
 \alias{paired_end_read_table}
 \title{A helper function that creates read tables from paired end reads}
 \usage{
-paired_end_read_table(ga_pair, nt_pos)
+paired_end_read_table(ga_pair, nt_pos, debug = F)
 }
 \description{
 Should not be called directly by user, but instead is accessed
 by calling read_table
 }
-

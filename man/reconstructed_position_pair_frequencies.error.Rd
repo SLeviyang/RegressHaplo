@@ -22,4 +22,3 @@ and freq is the frequency
 \description{
 Extract the position pair frequencies from haplotypes
 }
-

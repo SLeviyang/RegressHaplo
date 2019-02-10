@@ -13,4 +13,3 @@ directory of read table}
 \description{
 Given loci, create global haplotypes
 }
-

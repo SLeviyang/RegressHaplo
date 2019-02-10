@@ -12,4 +12,3 @@ A character vector
 \description{
 Returns positions of read table as character vector
 }
-

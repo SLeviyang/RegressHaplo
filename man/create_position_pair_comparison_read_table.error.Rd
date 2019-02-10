@@ -23,4 +23,3 @@ path to created file
 Create a read table for analyzing frequencies of positions pairs.  This
 is a pre-analysis step.
 }
-

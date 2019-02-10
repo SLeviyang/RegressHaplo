@@ -26,4 +26,3 @@ corresponding to a solution.
 Within each column, the first four rows are
 fit, rho, K, and kk followed the computed solution.
 }
-

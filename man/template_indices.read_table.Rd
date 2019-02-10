@@ -19,4 +19,3 @@ that have the given templates
 \description{
 Return read indices corresponding to the template
 }
-

@@ -18,4 +18,3 @@ reads
 with no gap are not split, even though they might be from
 different ends
 }
-

@@ -9,4 +9,3 @@ read_fit.readFit(df, h, pi = NULL)
 \description{
 Build a readFit object base on reads
 }
-

@@ -28,4 +28,3 @@ identified.  This is a simple variant caller which is much faster
 than VPhaser2, but cannot call low frequency variants with precision
 since phasing information is not used
 }
-

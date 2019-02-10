@@ -4,12 +4,16 @@
 \alias{read_table}
 \title{Read table constructor}
 \usage{
-read_table(bam_file, bai_file = NULL, variant_calls)
+read_table(bam_file, bai_file = NULL, variant_calls, pu = NULL,
+  debug = F)
 }
 \arguments{
 \item{bam_file}{bam file}
 
 \item{bai_file}{index file.  If missing then .bai appendix on bam_file is assumed.}
+
+\item{pu}{A BAM pileup object returned by BAM_pileup method.  If NULL, a pile up
+will be created}
 
 \item{variant_calls.}{A data.frame specifying positions and nucleotides on
 reference to be taken as true variants, see details.}
@@ -34,4 +38,3 @@ variant_calls has 6 columns which must be names as c("pos", "A", "C", "G", "T", 
 pos gives the position at which a true variant exists.  The other columns have logical entries,
 with TRUE meaning that a true variant exists with the corresponding nucleotide.
 }
-

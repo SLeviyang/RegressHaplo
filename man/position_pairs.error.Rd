@@ -20,4 +20,3 @@ a data.frame with columns pos1, pos2 giving the positions of the pairs
 \description{
 Get position pairs with threshold coverage
 }
-

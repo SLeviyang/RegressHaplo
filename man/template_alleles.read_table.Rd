@@ -28,4 +28,3 @@ equal to the number of positions in the read table
 and with T corresponding to nucleotide positions that are
 part of the template.
 }
-

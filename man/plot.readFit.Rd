@@ -14,4 +14,3 @@ plot.readFit(rf, outfile = NULL)
 \description{
 Visualize a readfit object
 }
-

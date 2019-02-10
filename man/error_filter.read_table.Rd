@@ -20,4 +20,3 @@ removed
 \description{
 Remove reads that are below error noise.
 }
-

@@ -19,4 +19,3 @@ haplotypes in h.csv (haplotype_number)
 \description{
 Haplotype reconstruction of given solution
 }
-

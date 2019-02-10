@@ -18,4 +18,3 @@ Each read determines a template, with T at the positions
 covered by the read, but multiple reads can have the same
 template.  This function returns all unique templates.
 }
-

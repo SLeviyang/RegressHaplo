@@ -15,4 +15,3 @@ a list of numeric vectors containing read positions
 \description{
 Return the positions covered by each read group in a read table
 }
-

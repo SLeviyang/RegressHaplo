@@ -16,4 +16,3 @@ Alters the colnames of the haplotype matrix
 to reflect pos names.   This is meant for visual purposes.   The Haplo object never accesses
 these names.
 }
-

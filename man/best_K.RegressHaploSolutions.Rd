@@ -16,4 +16,3 @@ Determines the best fit solution
 K is given by the number of non-zero entries in pi returned
 by RegressHaplo
 }
-

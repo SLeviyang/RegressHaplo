@@ -21,4 +21,3 @@ in the reference space by removing soft clippings, removing insertions (relative
 the reference), and inserting
 "-" for deletions (relative to the reference)
 }
-

@@ -18,4 +18,3 @@ A vector of error rates.
 \description{
 Estimate error rate of pileup
 }
-

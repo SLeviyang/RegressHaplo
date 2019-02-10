@@ -1,3 +1,18 @@
+#' Read a VSeqTools_pileup object
+#' 
+#' @param filename A csv file 
+#' 
+#' @return a VSeqTools_pileup object
+read_BAM_pileup <- function(filename)
+{
+  df <- read.table(filename, header=T, sep=",", check.names = F,
+                   stringsAsFactors = F)
+  
+  class(df) <- c("VSeqTools_pileup", "data.frame")
+  
+  return (df)
+}
+
 
 #' Calculate pileup for each position of reference from BAM file
 #'

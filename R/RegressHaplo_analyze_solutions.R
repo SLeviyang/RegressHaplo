@@ -110,6 +110,10 @@ best_K.RegressHaploSolutions <- function(rhs)
   df_K <- ddply(df, .(K), function(cdf) {
     data.frame(fit=min(cdf$fit), K=cdf$K[1])
   })
+  
+  # if there is only one K, return it
+  if (nrow(df_K)==1)
+    return (df_K$K[1])
 
   # just in case sort
   ind <- order(df_K$K)

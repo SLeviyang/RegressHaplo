@@ -9,4 +9,3 @@ fix_out_dir(out_dir)
 \description{
 Add a / to out_dir if it is not there
 }
-

@@ -9,4 +9,3 @@ position_fit.readFit(df, h, pi = NULL)
 \description{
 Return a readFit object base on nucleotide positions
 }
-

@@ -26,4 +26,3 @@ h is a character matrix with rows giving haplotypes, pi is a numeric
 vector of frequencies, count is not currently used and h_seq is
 a characer vector of haplotypes (rows of h pasted).
 }
-

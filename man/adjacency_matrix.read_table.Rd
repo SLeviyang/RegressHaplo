@@ -18,4 +18,3 @@ of read groups in the read graph
 \description{
 Create edge matrix for read graph
 }
-

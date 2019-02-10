@@ -20,4 +20,3 @@ estimated for h_full and fit gives a fit value.
 \description{
 Fit regression for a given rho
 }
-

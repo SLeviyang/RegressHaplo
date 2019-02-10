@@ -22,4 +22,3 @@ corresponding to read groups that are identical at the remaining positions.
 This functions joins those reads and returns a read_table
 with unique read groups.
 }
-

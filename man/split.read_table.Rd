@@ -13,4 +13,3 @@ has only 1 position, then NULL is returned.
 \description{
 Split a read table into two read tables.
 }
-

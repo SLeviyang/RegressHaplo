@@ -10,11 +10,17 @@ read_table_to_loci.pipeline(out_dir, max_num_haplotypes = 1200,
 \arguments{
 \item{out_dir}{output directory for parameter files and assumed
 directory of read table}
+
+\item{max_num_haplotypes}{the maximum number of haplotypes over the full reference
+that will be considered.}
+
+\item{min_cover}{loci cannot span positions with read coverage less than min_cover.}
 }
 \description{
 Given a read table, split variable positions into loci
 }
 \details{
-The read table is assumed to be in out_dir with filename read_table.csv.
+The read table is assumed to be in out_dir with filename read_table.csv.  The
+parameter min_cover can (and should) be used to force loci to break across low coverage
+regions of the reference.
 }
-

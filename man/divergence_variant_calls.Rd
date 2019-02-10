@@ -23,4 +23,3 @@ second BAM file and positions at which there are disagreements are called
 \details{
 insertions are ignored in calling divergent positions
 }
-

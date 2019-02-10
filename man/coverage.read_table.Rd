@@ -12,4 +12,3 @@ A numeric vector
 \description{
 Return coverage at each position in read table
 }
-

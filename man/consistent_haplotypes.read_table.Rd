@@ -14,4 +14,3 @@ Split read table into loci with no spanning single end reads, create
 consistent haplotypes for each locus, and then combine to create full
 haploptypes
 }
-

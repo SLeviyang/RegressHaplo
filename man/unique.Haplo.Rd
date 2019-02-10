@@ -9,4 +9,3 @@
 \description{
 Returns Haplo object with identical haplotype frequencies merged.
 }
-

@@ -14,4 +14,3 @@ merge_haplotypes.read_table(con_haps)
 A helper function that create haplotype permutations from a list
 of haplotype matrices
 }
-

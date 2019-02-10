@@ -32,4 +32,3 @@ and fit.
 \description{
 Loads a set of solutions created by solutions.RegressHaplo
 }
-

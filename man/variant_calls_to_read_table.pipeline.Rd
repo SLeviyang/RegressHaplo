@@ -4,12 +4,16 @@
 \alias{variant_calls_to_read_table.pipeline}
 \title{Given variant calls and a bam file, create a read table}
 \usage{
-variant_calls_to_read_table.pipeline(bam_file, out_dir, sig = 0.01)
+variant_calls_to_read_table.pipeline(bam_file, out_dir,
+  use_raw_read_table = F, sig = 0.01, debug = F)
 }
 \arguments{
 \item{bam_file}{path to bam file}
 
 \item{out_dir}{output directory, will be created if needed}
+
+\item{use_raw_read_table}{If there is an existing raw_read_table.csv file, should
+it be used as a raw read table?  See details.}
 
 \item{sig}{significance levels at which to filter reads.}
 }
@@ -23,6 +27,9 @@ Given variant calls and a bam file, create a read table
 Converts bam_file to a raw read table, written to
 $outdir/raw_read_table.csv and then applies error correction
 to reads and creates a filtered read table, written to
-$outdir/read_table.csv
+$outdir/read_table.csv.   The parameter use_raw_read_table can
+be used to skip the step of creating the raw read table, which
+is very time consuming.  This is particularly useful, if the
+user wants to experiment with different error levels to form
+an acceptable read table.
 }
-
