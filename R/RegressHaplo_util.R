@@ -294,8 +294,8 @@ haplotype_permute.RegressHaplo <- function(h_list)
 #' optimization
 #'
 #' @details The regression solves
-#' \min |y - P*pi|^2 + \rho \pi^T*M*\pi
-#' subject to:  \sum \pi_i = 1, \pi_i \ge 0.
+#' min |y - P*pi|^2 + rho pi^T*M*pi
+#' subject to:  sum pi_i = 1, pi_i ge 0.
 #'
 #' @param df read table
 #' @param h haplotype matrix
