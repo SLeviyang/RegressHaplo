@@ -53,7 +53,7 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
   if (!is.null(end_pos))
     vc_pos <- vc_pos[vc_pos <= end_pos]
 
-  vc <- vc[vc_pos,]
+  vc <- vc[is.element(vc$pos, vc_pos),]
   names(vc) <- c("pos", "A", "C", "G", "T", "-", "i")
 
   variant_call_file <- paste(out_dir, "variant_calls.csv", sep="")
