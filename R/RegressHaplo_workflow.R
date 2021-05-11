@@ -54,7 +54,6 @@ bam_to_variant_calls.pipeline <- function(bam_file, out_dir,
   if (!is.null(end_pos))
     vc_pos <- vc_pos[vc_pos <= end_pos]
 
-  # NEWFIX
   vc <- vc[is.element(vc$pos, vc_pos),]
   names(vc) <- c("pos", "A", "C", "G", "T", "-", "i")
 
@@ -116,8 +115,12 @@ variant_calls_to_read_table.pipeline <- function(bam_file,
   print("setting up for read table error correction")
   pu <- get_pile_up.pipeline(out_dir)
   error_rate <- get_error_rate(pu, split_by_nuc=F)
-
-  df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
+  
+  # if there's an error, filter with it
+  if (error_rate > 1E-4)
+    df_filter <- error_filter.read_table(df, error_freq=error_rate, sig=sig)
+  else
+    df_filter <- df
 
   print("cleaning read table again")
   df_filter <- clean.read_table(df_filter, min_count=0,
