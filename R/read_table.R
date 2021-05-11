@@ -193,6 +193,20 @@ paired_end_read_table <- function(ga_pair,
 {
   ga1 <- GenomicAlignments::first(ga_pair)
   ga2 <- GenomicAlignments::last(ga_pair)
+  
+  cat("processing paired end reads:", length(ga_pair), "\n")
+  
+  active1_m <- sapply(nt_pos, function(nt) nt >= start(ga1) & nt <= end(ga1))
+  active1 <- rowSums(active1_m) > 0
+  
+  active2_m <- sapply(nt_pos, function(nt) nt >= start(ga2) & nt <= end(ga2))
+  active2 <- rowSums(active2_m) > 0
+  
+  ga_pair <- ga_pair[active1 | active2]
+  ga1 <- GenomicAlignments::first(ga_pair)
+  ga2 <- GenomicAlignments::last(ga_pair)
+  
+  cat("processing paired end reads covering variable pos:", length(ga_pair), "\n")
 
   seq1 <- as.character(mcols(ga1)$seq)
   seq2 <- as.character(mcols(ga2)$seq)
@@ -614,6 +628,21 @@ adjacency_matrix.read_table <- function(df, sparse=T)
       i <- sp_order[i_sp]; j <- sp_order[j_sp];
       shared_pos <- intersect(pos[[i]], pos[[j]])
 
+      # I need to allow for no shared pos
+      # FIX THIS!
+      # to produce ATT
+      # count 26057 26124 26194
+      # 1    205     A     C     A
+      # 2    389     A     C  <NA>
+      #   3    325     A  <NA>  <NA>
+      #   4    300     C     C     A
+      # 5    327     C     C  <NA>
+      #   6   2039  <NA>     C     A
+      # 7    434  <NA>     C  <NA>
+      #   8   4155  <NA>  <NA>     A
+      # 9   2164  <NA>  <NA>     T
+      # 10   831  <NA>     T     A
+      # 11    14  <NA>     T  <NA>
       if (length(shared_pos)==0)
         next
 

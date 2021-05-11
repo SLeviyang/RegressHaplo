@@ -36,8 +36,9 @@ single_position.error <- function(pu,
   template <- rep(0, length(pu_nuc_names))
   names(template) <- hap_nuc_names
 
-  errors <- plyr::adply(pu, 1, function(cpu) {
-    cpos <- cpu$pos
+  errors <- plyr::adply(1:nrow(pu), 1, function(i) {
+    cpos <- i
+    cpu <- pu[cpos,]
     if (cpos > npos_hap)
       return (data.frame(pos=cpos, error=NA))
 
@@ -68,6 +69,7 @@ single_position.error <- function(pu,
 plot_single_position.error <- function(df, boxplot=T)
 {
   # remove NA positions
+  browser()
   if (!is.element("label", names(df)))
     df$label <- factor("")
 

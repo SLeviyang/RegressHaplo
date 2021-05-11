@@ -77,6 +77,7 @@ BAM_pileup <- function(bam_file,
 
   min_pos <- min(p$pos)
   max_pos <- max(p$pos)
+  
 
   get_variant_df <- function(pileup_df) {
 
