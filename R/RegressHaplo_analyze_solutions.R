@@ -134,19 +134,27 @@ best_K.RegressHaploSolutions <- function(rhs)
   return (best_K)
 }
 
-best_fit.RegressHaploSolutions <- function(ir, K_val=NULL)
+best_fit.RegressHaploSolutions <- function(ir, 
+                                           K_val=NULL,
+                                           solution_number=NULL)
 {
   df_stats <- get_stats_df.RegressHaploSolutions(ir)
-  if (is.null(K_val))
+  
+  if (is.null(K_val) & is.null(solution_number))
     K_val <- best_K.RegressHaploSolutions(ir)
+  if (!is.null(K_val)) { 
+    if (!is.element(K_val, get_K.RegressHaploSolutions(ir)))
+      stop("K_val is not a K value in the solutions")
 
-  if (!is.element(K_val, get_K.RegressHaploSolutions(ir)))
-    stop("K_val is not a K value in the solutions")
+    df_stats <- filter(df_stats, K==K_val)
 
-  df_stats <- filter(df_stats, K==K_val)
-
-  ind <- which.min(df_stats$fit)
-  optim_solution_num <- df_stats$solution_number[ind]
+    ind <- which.min(df_stats$fit)
+    optim_solution_num <- df_stats$solution_number[ind]
+  } else {
+    if (!is.element(solution_number, df_stats$solution_number))
+      stop("solution number is not valid!")
+    optim_solution_num <- solution_number
+  }
 
   p <- get_solutions.RegressHaploSolutions(ir)[optim_solution_num,]
   h_full <- get_h.RegressHaploSolutions(ir)

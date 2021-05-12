@@ -39,7 +39,7 @@ read_BAM_pileup <- function(filename)
 #'
 BAM_pileup <- function(bam_file,
                   bai_file=NULL,
-                  max_depth=2000,
+                  max_depth=20000,
                   min_base_quality=30,
                   min_mapq=30,
                   strand=NULL)
