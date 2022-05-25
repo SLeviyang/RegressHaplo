@@ -90,7 +90,8 @@ template_fit.readFit <- function(template_m, df, h, pi=NULL)
       #cnucs[ctemplate] <- strsplit(alleles[i], split="")[[1]]
       return (cnucs)
     })
-    if (class(nucs) != "matrix")
+   
+    if (all(class(nucs) != "matrix"))
       nucs <- matrix(nucs, nrow=nalleles)
     else
       nucs <- t(nucs)
@@ -176,7 +177,7 @@ split_allele.readFit <- function(allele)
 haplotype_match.readFit <- function(nucs, h)
 {
 
-  if (class(nucs) != "matrix")
+  if (all(class(nucs) != "matrix"))
     nucs <- matrix(nucs, nrow=1)
 
   if (ncol(nucs) != ncol(h))
@@ -188,7 +189,7 @@ haplotype_match.readFit <- function(nucs, h)
     as.numeric(x)
   })
 
-  if (class(h_match) != "matrix")
+  if (all(class(h_match) != "matrix"))
     h_match <- matrix(h_match, ncol=nrow(h))
   else
     h_match <- t(h_match)

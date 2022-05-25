@@ -16,7 +16,7 @@
 #' @export
 Haplo <- function(h, pi, count=NA)
 {
-  if (class(h) != "matrix" | class(pi) != "numeric")
+  if (all(class(h) != "matrix" | class(pi) != "numeric"))
     stop("h or pi are not of right class")
   if (nrow(h) != length(pi))
     stop("h and pi do not imply the same number of haplotypes")

@@ -74,6 +74,12 @@ BAM_pileup <- function(bam_file,
    p <- pileup(bam_file, index=bai_file,
                   pileupParam = p_param_no_strand)
   }
+  # update for bug due to merged alignments in one bam file causing
+  # a single pos to have multiple entries for a nucleotide
+  # make sure pos,nucleotide pairs are unique
+  p = plyr::ddply(p, .(pos,nucleotide), function(cp) {
+    data.frame(count=sum(cp$count))
+  })
 
   min_pos <- min(p$pos)
   max_pos <- max(p$pos)

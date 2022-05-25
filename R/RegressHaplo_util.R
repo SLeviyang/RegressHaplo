@@ -278,7 +278,7 @@ haplotype_permute.RegressHaplo <- function(h_list)
     hvec_paste <- paste(hvec, collapse="")
     strsplit(hvec_paste, split="")[[1]]
   })
-  if (class(haps) != "matrix")
+  if (all(class(haps) != "matrix"))
     haps <- matrix(haps, ncol=1)
   else
     haps <- t(haps)
