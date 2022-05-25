@@ -460,7 +460,10 @@ haplotypes_to_fasta.pipeline <- function(bam_file, out_dir)
     else
       return (rep(consensus[i], nhaps))
   })
-  hap_s <- apply(out_haps, 1, paste, collapse="")
+  if (is.null(dim(out_haps)))
+    hap_s <- paste(out_haps, collapse="")
+  else
+    hap_s <- apply(out_haps, 1, paste, collapse="")
   dna <- BStringSet(hap_s)
   names(dna) <- paste("haplotype", 1:nhaps, "_", round(10^4*pi)/10^4, sep="")
 
