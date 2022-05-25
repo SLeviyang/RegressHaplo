@@ -4,8 +4,7 @@
 \alias{subset.read_table}
 \title{Limit read table to a subset of positions}
 \usage{
-\method{subset}{read_table}(df, pos = NULL, start_pos = NULL,
-  end_pos = NULL)
+\method{subset}{read_table}(df, pos = NULL, start_pos = NULL, end_pos = NULL)
 }
 \description{
 Limit read table to a subset of positions

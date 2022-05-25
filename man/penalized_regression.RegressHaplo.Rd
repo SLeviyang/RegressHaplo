@@ -4,8 +4,7 @@
 \alias{penalized_regression.RegressHaplo}
 \title{Solves min_pi |y - P*pi|^2 + rho*pi^T*M*pi}
 \usage{
-penalized_regression.RegressHaplo(y, P, pi = NULL, rho, kk = 2,
-  verbose = T)
+penalized_regression.RegressHaplo(y, P, pi = NULL, rho, kk = 2, verbose = T)
 }
 \description{
 Solves min_pi |y - P*pi|^2 + rho*pi^T*M*pi

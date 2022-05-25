@@ -4,8 +4,7 @@
 \alias{position_pairs.error}
 \title{Get position pairs with threshold coverage}
 \usage{
-position_pairs.error(out_dir, max_pair_distance = 200,
-  minimum_coverage = 1000)
+position_pairs.error(out_dir, max_pair_distance = 200, minimum_coverage = 1000)
 }
 \arguments{
 \item{out_dir}{directory in which to find pair_comparison_read_table}

@@ -4,8 +4,7 @@
 \alias{read_table}
 \title{Read table constructor}
 \usage{
-read_table(bam_file, bai_file = NULL, variant_calls, pu = NULL,
-  debug = F)
+read_table(bam_file, bai_file = NULL, variant_calls, pu = NULL, debug = F)
 }
 \arguments{
 \item{bam_file}{bam file}

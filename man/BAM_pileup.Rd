@@ -4,8 +4,14 @@
 \alias{BAM_pileup}
 \title{Calculate pileup for each position of reference from BAM file}
 \usage{
-BAM_pileup(bam_file, bai_file = NULL, max_depth = 2000,
-  min_base_quality = 30, min_mapq = 30, strand = NULL)
+BAM_pileup(
+  bam_file,
+  bai_file = NULL,
+  max_depth = 20000,
+  min_base_quality = 30,
+  min_mapq = 30,
+  strand = NULL
+)
 }
 \arguments{
 \item{bam_file}{bam file}

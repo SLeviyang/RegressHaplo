@@ -4,8 +4,14 @@
 \alias{bam_to_variant_calls.pipeline}
 \title{Given a bam file, create variant call file}
 \usage{
-bam_to_variant_calls.pipeline(bam_file, out_dir, start_pos = NULL,
-  end_pos = NULL, sig = 0.01, heavy_tail = T)
+bam_to_variant_calls.pipeline(
+  bam_file,
+  out_dir,
+  start_pos = NULL,
+  end_pos = NULL,
+  sig = 0.01,
+  heavy_tail = T
+)
 }
 \arguments{
 \item{bam_file}{path to bam file}

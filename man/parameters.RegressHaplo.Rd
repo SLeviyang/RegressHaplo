@@ -5,8 +5,7 @@
 \title{Generate the y vector and P matrix of the RegressHaplo optimization and
 the associated haplotyes}
 \usage{
-\method{parameters}{RegressHaplo}(df, max_global_dim = 1200,
-  max_local_dim = 1200, min_cover = 500)
+\method{parameters}{RegressHaplo}(df, max_global_dim = 1200, max_local_dim = 1200, min_cover = 500)
 }
 \value{
 a list with entries y (numeric), P(numeric matrix) and h

@@ -5,21 +5,17 @@
 \title{Generate consistent haplotypes for a read table and applies a
 RegressHaplo optimization.}
 \usage{
-nofilter_and_optimize.RegressHaplo(df, rho, max_dim = 1200,
-  min_cover = 500)
+nofilter_and_optimize.RegressHaplo(df, rho, max_dim = 1200, min_cover = 500)
 }
 \arguments{
 \item{df}{read table}
 
 \item{rho}{The rho that should be used.}
 
-\item{max_dim}{The maximum number of consistent haplotypes that
-the RegressHaplo algorithm can handle.}
+\item{max_dim}{The maximum number of haplotypes that can be filtered}
 
 \item{min_cover}{The minimum read coverage needed to link across a
 read table position}
-
-\item{max_dim}{The maximum number of haplotypes that can be filtered}
 }
 \value{
 #' @return A list constaining the elements df, pi, fit, and h.

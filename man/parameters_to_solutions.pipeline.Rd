@@ -4,8 +4,11 @@
 \alias{parameters_to_solutions.pipeline}
 \title{Given a parameter files, run RegressHaplo to produce multiple solutions}
 \usage{
-parameters_to_solutions.pipeline(out_dir, num_trials = 700,
-  rho_vals = c(0.1, 1, 5, 10, 20))
+parameters_to_solutions.pipeline(
+  out_dir,
+  num_trials = 700,
+  rho_vals = c(0.1, 1, 5, 10, 20)
+)
 }
 \arguments{
 \item{out_dir}{output directory for parameter files and assumed

@@ -4,8 +4,13 @@
 \alias{variant_calls_to_read_table.pipeline}
 \title{Given variant calls and a bam file, create a read table}
 \usage{
-variant_calls_to_read_table.pipeline(bam_file, out_dir,
-  use_raw_read_table = F, sig = 0.01, debug = F)
+variant_calls_to_read_table.pipeline(
+  bam_file,
+  out_dir,
+  use_raw_read_table = F,
+  sig = 0.01,
+  debug = F
+)
 }
 \arguments{
 \item{bam_file}{path to bam file}

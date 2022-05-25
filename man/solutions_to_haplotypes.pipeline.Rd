@@ -4,7 +4,7 @@
 \alias{solutions_to_haplotypes.pipeline}
 \title{Given a RegressHaplo solutions file, determine optimal haplotypes}
 \usage{
-solutions_to_haplotypes.pipeline(out_dir, K_val = NULL)
+solutions_to_haplotypes.pipeline(out_dir, K_val = NULL, solution_number = NULL)
 }
 \arguments{
 \item{out_dir}{output directory for haplotype file and assumed
@@ -12,6 +12,8 @@ directory of solutions file}
 
 \item{K_val}{pick the best solution out of solutions with K_val
 haplotypes.  If NULL, then optimal K_val is used.}
+
+\item{solution_number}{the solution to use to form the haplotypes}
 }
 \value{
 path to solutions file

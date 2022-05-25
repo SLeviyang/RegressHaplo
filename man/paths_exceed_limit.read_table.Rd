@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_table.R
 \name{paths_exceed_limit.read_table}
 \alias{paths_exceed_limit.read_table}
-\title{Quickly determine the number of paths in an adjacency matrix exceed
+\title{Quickly determine if the number of paths in an adjacency matrix exceed
 a lower limit}
 \usage{
 paths_exceed_limit.read_table(m, paths_cutoff)
@@ -17,7 +17,7 @@ NA if number of paths exceeds num_paths, otherwise
 returns the number of paths.
 }
 \description{
-Quickly determine the number of paths in an adjacency matrix exceed
+Quickly determine if the number of paths in an adjacency matrix exceed
 a lower limit
 }
 \details{

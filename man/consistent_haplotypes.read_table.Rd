@@ -6,8 +6,7 @@
 consistent haplotypes for each locus, and then combine to create full
 haploptypes}
 \usage{
-consistent_haplotypes.read_table(df_in, rm.na = F,
-  max_num_haplotypes = 20000)
+consistent_haplotypes.read_table(df_in, rm.na = F, max_num_haplotypes = 20000)
 }
 \description{
 Split read table into loci with no spanning single end reads, create

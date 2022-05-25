@@ -5,8 +5,11 @@
 \title{Create a read table for analyzing frequencies of positions pairs.  This
 is a pre-analysis step.}
 \usage{
-create_position_pair_comparison_read_table.error(bam_file, variable_calls,
-  out_dir)
+create_position_pair_comparison_read_table.error(
+  bam_file,
+  variable_calls,
+  out_dir
+)
 }
 \arguments{
 \item{bam_file}{path to BAM file}

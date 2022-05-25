@@ -5,9 +5,14 @@
 \title{Generate consistent haplotypes for a read table and, if desired, apply
 RegressHaplo optimization.}
 \usage{
-filter_and_optimize.RegressHaplo(df, global_rho = NULL,
-  max_global_dim = 10000, max_local_dim = 1200, min_cover = 500,
-  run_optimization = F)
+filter_and_optimize.RegressHaplo(
+  df,
+  global_rho = NULL,
+  max_global_dim = 10000,
+  max_local_dim = 1200,
+  min_cover = 500,
+  run_optimization = F
+)
 }
 \arguments{
 \item{df}{read table}

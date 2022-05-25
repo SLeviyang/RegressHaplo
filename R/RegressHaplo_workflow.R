@@ -792,6 +792,7 @@ get_solutions_haplotype_reconstruction.pipeline <- function(out_dir, i)
 #' 
 #' @return a data.frame giving the true and predicted frequency at each
 #' position, nucleotide combination and a ggplot object of the frequencies
+#' @export
 solution_accuracy.pipeline <- function(out_dir, solution, nucs=c("A","C","G","T"),
                                        variable_positions=NULL,
                                        plot=T)

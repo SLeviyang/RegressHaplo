@@ -4,7 +4,7 @@
 \alias{plot.readFit}
 \title{Visualize a readfit object}
 \usage{
-plot.readFit(rf, outfile = NULL)
+\method{plot}{readFit}(rf, outfile = NULL)
 }
 \arguments{
 \item{rf}{a readFit object}

@@ -4,8 +4,13 @@
 \alias{solutions.RegressHaplo}
 \title{Solve the RegressHaplo optimization repeatedly}
 \usage{
-solutions.RegressHaplo(y, P, num_trials, rho_vals = c(0.1, 1, 2, 5),
-  kk_vals = 2)
+solutions.RegressHaplo(
+  y,
+  P,
+  num_trials,
+  rho_vals = c(0.1, 1, 2, 5),
+  kk_vals = 2
+)
 }
 \value{
 A matrix with each column corresponding to a solution.

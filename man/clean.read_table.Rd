@@ -4,9 +4,15 @@
 \alias{clean.read_table}
 \title{Clean read table}
 \usage{
-clean.read_table(df, min_count = 10, remove_outside_reads = T,
-  remove_empty_cols = T, remove_non_variant_pos = F,
-  remove_deletions = F, remove_partial_cover_reads = F)
+clean.read_table(
+  df,
+  min_count = 10,
+  remove_outside_reads = T,
+  remove_empty_cols = T,
+  remove_non_variant_pos = F,
+  remove_deletions = F,
+  remove_partial_cover_reads = F
+)
 }
 \arguments{
 \item{df}{read table}

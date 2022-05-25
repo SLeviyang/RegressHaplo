@@ -5,8 +5,11 @@
 \title{Split read table into loci with no spanning reads, create consistent
 haplotypes for each locus, and then combine to create full haplotypes}
 \usage{
-consistent_haplotypes_across_loci.read_table(df_in, min_cover = 500,
-  max_num_haplotypes = 20000)
+consistent_haplotypes_across_loci.read_table(
+  df_in,
+  min_cover = 500,
+  max_num_haplotypes = 20000
+)
 }
 \description{
 Split read table into loci with no spanning reads, create consistent
