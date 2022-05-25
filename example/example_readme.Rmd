@@ -74,5 +74,21 @@ plot(df$K, df$fit, xlab="K", ylab="fit")
 
 Here $K=5$ would have produced a better fit, but $K=4$ seems reasonable.
 
+Finally, we can visualize the accuracy of the haplotype reconstruction in terms of the predicted vs sampled frequencies at each position.  To do this, we pick a solution.  For example, for $K=4$, we can pick the solution with the lowest fit.
+```{r}
+df4 <- dplyr::filter(df, K==4) %>%
+       dplyr::arrange(fit)
+# the best solution is now the in the first row of df4
+solution <- df4$solution_number[1]
+solution
+```
+
+And given a particular solution, we can visualize the frequency of particular nucleotides at each variable position.   Here we show A and C, but any combination of A,C,G,T,d,i are possible.  The variable positions shown can also be varied, see help.
+```{r}
+out <- solution_accuracy.pipeline(out_dir, 
+                                  solution, 
+                                  nucs=c("A", "C"),
+                                  plot=T)
+```
 
 
