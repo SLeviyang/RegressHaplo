@@ -2,7 +2,7 @@
 
 This package reconstructs haplotypes from a BAM file using a penalized regression approach.   The algorithm assumes that the BAM file reads are drawn from a low diversity population, roughly <2% diversity.  BAM files reflecting high diversity will lead to long run times and bad performance.
 
-The penaliezd regression has the form
+The penalized regression has the form
 
 min_x ||y-Px||^2 + rho*J(x)
 
@@ -14,7 +14,7 @@ where J(x) is a quadratic penalty term.   The RegressHaplo algorithm is discusse
 ## Installation
 
 
-RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, rmutil, Rsamtools, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings, Rsamtools, and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
+RegressHaplo depends on the following R packages: **igraph, plyr, dplyr, ggplot2, rmutil, Rsamtools, Biostrings, GenomicAlignments**.  These packages must be installed prior to using RegressHaplo.  All are CRAN packages, which can be installed using the `install.packages` command or through the Rstudio GUI, except for Biostrings, Rsamtools, and GenomicAlignments, which are Bioconductor packages and can be installed as follows:
 
 ```r
 source("https://bioconductor.org/biocLite.R")
@@ -88,10 +88,12 @@ library("RegressHaplo")
 # BAM file containing the dataset
 bam_file <- "data/example.bam"
 
-# directory in which RegressHaplo output will be writtenout_dir <- "my_output/"
+# directory in which RegressHaplo output will be written
+out_dir <- "my_output/"
 dir.create(out_dir)
 
-# run the RegressHaplo pipelinefull_pipeline(bam_file, out_dir, start_pos=500, end_pos=1500, num_trials=700)
+# run the RegressHaplo pipeline
+full_pipeline(bam_file, out_dir, start_pos=500, end_pos=1500, num_trials=700)
 ```
 
 ###See **example/example_readme.pdf** for further details on using the RegressHaplo pipeline.  

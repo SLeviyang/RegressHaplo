@@ -17,5 +17,6 @@ Depends:
     Biostrings,
     Rsamtools,
     rmutil,
-    GenomicAlignments
+    GenomicAlignments,
+    ggplot2
 RoxygenNote: 6.1.1

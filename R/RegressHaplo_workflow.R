@@ -778,3 +778,71 @@ get_solutions_haplotype_reconstruction.pipeline <- function(out_dir, i)
 
   return (df)
 }
+
+#' At each position, plot the pileup frequency for a given nucleotide
+#' against the predicted frequency based on the RegressHaplo solution
+#' 
+#' @param out_dir output directory with RegressHaplo files
+#' @param i solution number
+#' @param nuc which nucleotide shoud be analyzed, one of "A", "C", "G", "T", "d", "i"
+#' @param plot should the frequencies be plotted?
+#' @param variable_positions a numeric vector giving the variable positions to 
+#' include.  If NULL, then all variable positions are included (returned
+#' by get_variable_positions.pipeline)
+#' 
+#' @return a data.frame giving the true and predicted frequency at each
+#' position, nucleotide combination and a ggplot object of the frequencies
+solution_accuracy.pipeline <- function(out_dir, i, nucs=c("A","C","G","T"),
+                                       variable_positions=NULL,
+                                       plot=T)
+{
+  # get the haplotype solution
+  s = get_solutions_haplotype_reconstruction.pipeline(out_dir, i)
+  h = sapply(s$haplotype, function(ch) strsplit(ch, split="")[[1]]) 
+  freqs = s$freq
+  
+  all_vpos = get_variable_positions.pipeline(out_dir) 
+  if (!is.null(variable_positions))
+    vpos = intersect(all_vpos, variable_positions)
+  else
+    vpos = all_vpos
+  
+  if (length(vpos)==0)
+    stop("variable positions are not a subset of the haplotype reconstruction positions")
+  h = h[match(vpos,all_vpos),]
+  
+  # get the pileup
+  pu = get_pile_up.pipeline(out_dir)
+  pu_ind = match(vpos, pu$pos)
+  if (any(is.na(pu_ind)))
+    stop("variable positions do not match pileup!")
+  pu = pu[pu_ind,]
+  
+  true_df = plyr::adply(nucs, 1, function(cn) {
+    data.frame(freq=pu[[cn]], 
+               pos=vpos,
+               nuc=cn,
+               type="sample", stringsAsFactors = F)
+  }, .id=NULL)
+  
+  pred_df = plyr::adply(nucs, 1, function(cn) {
+    data.frame(freq=as.numeric((h==cn) %*% freqs), 
+               pos=vpos,
+               nuc=cn,
+               type="pred", stringsAsFactors = F)
+  }, .id=NULL)
+ 
+  df = rbind(true_df, pred_df)
+ 
+  g = ggplot(data=df) + geom_bar(aes(x=as.factor(pos),
+                                     y=freq,
+                                     fill=nuc), 
+                                 stat = "identity") +
+      facet_grid(type ~ nuc) + ylim(c(0,1)) +
+     theme(axis.text.x = element_text(angle = 90)) +
+     xlab("position")
+  if (plot)
+    print(g)
+  
+  return (list(d=df, g=g))
+}
