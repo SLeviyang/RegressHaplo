@@ -783,7 +783,7 @@ get_solutions_haplotype_reconstruction.pipeline <- function(out_dir, i)
 #' against the predicted frequency based on the RegressHaplo solution
 #' 
 #' @param out_dir output directory with RegressHaplo files
-#' @param i solution number
+#' @param solution solution number
 #' @param nuc which nucleotide shoud be analyzed, one of "A", "C", "G", "T", "d", "i"
 #' @param plot should the frequencies be plotted?
 #' @param variable_positions a numeric vector giving the variable positions to 
@@ -792,12 +792,12 @@ get_solutions_haplotype_reconstruction.pipeline <- function(out_dir, i)
 #' 
 #' @return a data.frame giving the true and predicted frequency at each
 #' position, nucleotide combination and a ggplot object of the frequencies
-solution_accuracy.pipeline <- function(out_dir, i, nucs=c("A","C","G","T"),
+solution_accuracy.pipeline <- function(out_dir, solution, nucs=c("A","C","G","T"),
                                        variable_positions=NULL,
                                        plot=T)
 {
   # get the haplotype solution
-  s = get_solutions_haplotype_reconstruction.pipeline(out_dir, i)
+  s = get_solutions_haplotype_reconstruction.pipeline(out_dir, solution)
   h = sapply(s$haplotype, function(ch) strsplit(ch, split="")[[1]]) 
   freqs = s$freq
   
